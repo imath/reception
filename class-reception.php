@@ -51,6 +51,7 @@ final class Reception {
 		// Load Globals & Functions.
 		require $inc_path . 'globals.php';
 		require $inc_path . 'functions.php';
+		require $inc_path . 'capabilities.php';
 
 		// Load Admin.
 		if ( is_admin() ) {
