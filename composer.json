@@ -1,0 +1,13 @@
+{
+	"name": "imath/reception",
+	"description": "BuddyPress plugin to customize user front using WordPress Blocks.",
+	"type": "buddypress-plugin",
+	"require": {
+	  "squizlabs/php_codesniffer" : "^3.3.1"
+	},
+	"require-dev": {
+	  "dealerdirect/phpcodesniffer-composer-installer": "*",
+	  "phpcompatibility/phpcompatibility-wp" : "*",
+	  "wp-coding-standards/wpcs": "*"
+	}
+}
