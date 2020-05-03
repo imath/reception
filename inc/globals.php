@@ -25,6 +25,9 @@ function reception_globals() {
 	// Path.
 	$reception->dir = plugin_dir_path( dirname( __FILE__ ) );
 
+	// Templates dir.
+	$reception->tpl_dir = trailingslashit( $reception->dir ) . 'templates';
+
 	// URL.
 	$reception->url = plugin_dir_url( dirname( __FILE__ ) );
 }

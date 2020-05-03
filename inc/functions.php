@@ -134,3 +134,17 @@ add_action( 'bp_blocks_init', 'reception_init_blocks' );
 function reception_render_member_bio( $attributes = array() ) {
 	return '';
 }
+
+/**
+ * Checks whether the Block based user front is available or not.
+ *
+ * @since 1.0.0
+ *
+ * @return boolean True if the Block based user front is available. False otherwise.
+ */
+function reception_has_front() {
+	$disable         = get_option( 'reception_disable_block_based_member_front' );
+	$default_page_id = bp_get_option( '_reception_default_template_id', 0 );
+
+	return ! $disable && $default_page_id;
+}

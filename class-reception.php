@@ -53,6 +53,10 @@ final class Reception {
 		require $inc_path . 'functions.php';
 		require $inc_path . 'capabilities.php';
 
+		if ( wp_using_themes() ) {
+			require $inc_path . 'templates.php';
+		}
+
 		// Load Admin.
 		if ( is_admin() ) {
 			require $inc_path . 'admin.php';
