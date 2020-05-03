@@ -7,9 +7,9 @@
     "npm": "6.14.4"
   },
   "scripts": {
-    "start": "parcel watch src/*/index.js --out-dir js --no-source-maps",
-    "dev": "parcel build src/*/index.js --out-dir js --no-source-maps --no-minify",
-    "build": "parcel build src/*/index.js --out-dir js --no-source-maps",
+    "start": "parcel watch src/*/*.js --out-dir js --no-source-maps",
+    "dev": "parcel build src/*/*.js --out-dir js --no-source-maps --no-minify",
+    "build": "parcel build src/*/*.js --out-dir js",
     "wpcs": "./vendor/bin/phpcs class-reception.php inc/* --extensions=php --standard=WordPress"
   },
   "repository": {

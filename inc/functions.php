@@ -12,6 +12,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Returns the current version of the plugin.
+ *
+ * @since 1.0.0
+ *
+ * @return string The current version of the plugin.
+ */
+function reception_get_version() {
+	return reception()->version;
+}
+
+/**
  * Init the plugins by registering custom WordPress objetcs.
  *
  * @since 1.0.0
@@ -67,3 +78,59 @@ function reception_init() {
 	add_filter( 'rest_reception_trashable', '__return_false' );
 }
 add_action( 'bp_init', 'reception_init' );
+
+/**
+ * Réception Blocks initialization.
+ *
+ * @since 1.0.0
+ */
+function reception_init_blocks() {
+	$js_base_url = trailingslashit( reception()->url ) . 'js/blocks/';
+
+	bp_register_block(
+		array(
+			'name'               => 'reception/member-bio',
+			'render_callback'    => 'reception_render_member_bio',
+			'attributes'         => array(
+				'userID' => array(
+					'type'    => 'integer',
+					'default' => 0,
+				),
+			),
+			'editor_script'      => 'reception-member-bio',
+			'editor_script_url'  => $js_base_url . 'member-bio.js',
+			'editor_script_deps' => array(
+				'wp-blocks',
+				'wp-element',
+				'wp-i18n',
+				'wp-api-fetch',
+			),
+		)
+	);
+
+	bp_register_block(
+		array(
+			'name'               => 'reception/info',
+			'editor_script'      => 'reception-info',
+			'editor_script_url'  => $js_base_url . 'reception-info.js',
+			'editor_script_deps' => array(
+				'wp-blocks',
+				'wp-element',
+				'wp-i18n',
+			),
+		)
+	);
+}
+add_action( 'bp_blocks_init', 'reception_init_blocks' );
+
+/**
+ * Renders the Réception Member's bio block.
+ *
+ * @since 1.0.0
+ *
+ * @param array $attributes The block attributes.
+ * @return string HTML output.
+ */
+function reception_render_member_bio( $attributes = array() ) {
+	return '';
+}
