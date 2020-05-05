@@ -92,9 +92,9 @@ function reception_init_blocks() {
 			'name'               => 'reception/member-bio',
 			'render_callback'    => 'reception_render_member_bio',
 			'attributes'         => array(
-				'userID' => array(
-					'type'    => 'integer',
-					'default' => 0,
+				'blockTitle' => array(
+					'type'    => 'string',
+					'default' => __( 'À propos', 'reception' ),
 				),
 			),
 			'editor_script'      => 'reception-member-bio',
@@ -102,8 +102,10 @@ function reception_init_blocks() {
 			'editor_script_deps' => array(
 				'wp-blocks',
 				'wp-element',
+				'wp-components',
 				'wp-i18n',
-				'wp-api-fetch',
+				'wp-editor',
+				'wp-block-editor',
 			),
 		)
 	);
@@ -132,7 +134,69 @@ add_action( 'bp_blocks_init', 'reception_init_blocks' );
  * @return string HTML output.
  */
 function reception_render_member_bio( $attributes = array() ) {
-	return '';
+	$user_id = 0;
+	$class   = 'static';
+
+	$container = '<div class="reception-block-member-bio %1$s">%2$s</div>';
+	$params    = wp_parse_args(
+		$attributes,
+		array(
+			'blockTitle' => '',
+		)
+	);
+
+	if ( bp_is_my_profile() ) {
+		$class = 'dynamic';
+		return sprintf( $container, $class, '' );
+	} elseif ( bp_displayed_user_id() ) {
+		$user_id = bp_displayed_user_id();
+	} else {
+		$user_id = get_current_user_id();
+	}
+
+	if ( ! $user_id ) {
+		return '';
+	}
+
+	/** This filter is documented in wp-includes/author-template.php */
+	$member_bio = apply_filters( 'the_author_description', get_the_author_meta( 'description', $user_id ) );
+
+	if ( ! $member_bio ) {
+		$member_bio = esc_html__( 'Ce membre n’a pas renseigné sa présentation pour le moment.', 'reception' );
+	}
+
+	if ( $params['blockTitle'] ) {
+		$member_bio = sprintf(
+			'<h3>%1$s</h3>%2$s<p>%3$s</p>',
+			esc_html( $params['blockTitle'] ),
+			"\n",
+			$member_bio
+		);
+	} else {
+		$member_bio = '<p>' . $member_bio . '</p>';
+	}
+
+	return sprintf( $container, $class, $member_bio );
+}
+
+/**
+ * Get the member's front block template ID.
+ *
+ * @since 1.0.0
+ *
+ * @return interger  The member's front block template ID.
+ */
+function reception_get_member_front_id() {
+	$member_front_id = bp_get_option( '_reception_default_template_id', 0 );
+
+	/**
+	 * Filter here to use a different member's front block template ID.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param interger $member_front_id The member's front block template ID.
+	 */
+	return (int) apply_filters( 'reception_get_member_front_id', $member_front_id );
 }
 
 /**
@@ -144,7 +208,7 @@ function reception_render_member_bio( $attributes = array() ) {
  */
 function reception_has_front() {
 	$disable         = get_option( 'reception_disable_block_based_member_front' );
-	$default_page_id = bp_get_option( '_reception_default_template_id', 0 );
+	$default_page_id = reception_get_member_front_id();
 
 	return ! $disable && $default_page_id;
 }

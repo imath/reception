@@ -2,7 +2,10 @@
  * WordPress dependencies.
  */
 const { registerBlockType } = wp.blocks;
-const { createElement } = wp.element;
+const { createElement, Fragment } = wp.element;
+const { Disabled, PanelBody, TextControl } = wp.components;
+const { InspectorControls } = wp.blockEditor;
+const { ServerSideRender } = wp.editor;
 const { __ } = wp.i18n;
 
 registerBlockType( 'reception/member-bio', {
@@ -15,15 +18,33 @@ registerBlockType( 'reception/member-bio', {
 	category: 'widgets',
 
 	attributes: {
-		userID: {
-			type: 'integer',
-			default: 0,
+		blockTitle: {
+			type: 'string',
+			default: __( 'À propos', 'reception' ),
 		},
 	},
 
 	edit: function( { attributes, setAttributes } ) {
-		return(
-			<p>{ __( 'Présentation du membre.', 'reception' ) }</p>
-		)
+		const { blockTitle } = attributes;
+
+		return (
+			<Fragment>
+				<InspectorControls>
+					<PanelBody title={ __( 'Réglages', 'reception' ) } initialOpen={ true }>
+						<TextControl
+							label={ __( 'Titre du bloc', 'reception' ) }
+							value={ blockTitle }
+							onChange={ ( text ) => {
+								setAttributes( { blockTitle: text } );
+							} }
+							help={ __( 'Pour masquer le titre du bloc, laisser ce champ vide.', 'reception' ) }
+						/>
+					</PanelBody>
+				</InspectorControls>
+				<Disabled>
+					<ServerSideRender block="reception/member-bio" attributes={ attributes } />
+				</Disabled>
+			</Fragment>
+		);
 	},
 } );
