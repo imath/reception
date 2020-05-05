@@ -13,6 +13,13 @@ registerBlockType( 'reception/member-bio', {
 
 	description: __( 'Ce bloc permet aux membres de votre communauté de partager leurs informations de présentation ou biographiques.', 'reception' ),
 
+	supports: {
+		className: false,
+		anchor: false,
+		multiple: false,
+		reusable: false,
+	},
+
 	icon: 'id-alt',
 
 	category: 'widgets',

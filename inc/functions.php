@@ -97,7 +97,7 @@ function reception_init_blocks() {
 					'default' => __( 'À propos', 'reception' ),
 				),
 			),
-			'editor_script'      => 'reception-member-bio',
+			'editor_script'      => 'reception-block-member-bio',
 			'editor_script_url'  => $js_base_url . 'member-bio.js',
 			'editor_script_deps' => array(
 				'wp-blocks',
@@ -125,6 +125,30 @@ function reception_init_blocks() {
 }
 add_action( 'bp_blocks_init', 'reception_init_blocks' );
 
+function reception_register_scripts() {
+	if ( ! bp_is_my_profile() ) {
+		return;
+	}
+
+	$js_base_url = trailingslashit( reception()->url ) . 'js/scripts/';
+	$version     = reception_get_version();
+
+	wp_register_script(
+		'reception-script-member-bio',
+		$js_base_url . 'member-bio.js',
+		array(
+			'wp-element',
+			'wp-i18n',
+			'wp-api-fetch',
+			'wp-block-editor',
+			'wp-components',
+		),
+		$version,
+		true
+	);
+}
+add_action( 'bp_enqueue_scripts', 'reception_register_scripts', 1 );
+
 /**
  * Renders the Réception Member's bio block.
  *
@@ -147,6 +171,9 @@ function reception_render_member_bio( $attributes = array() ) {
 
 	if ( bp_is_my_profile() ) {
 		$class = 'dynamic';
+		wp_enqueue_script( 'reception-script-member-bio' );
+		wp_enqueue_style( 'wp-components' );
+
 		return sprintf( $container, $class, '' );
 	} elseif ( bp_displayed_user_id() ) {
 		$user_id = bp_displayed_user_id();
@@ -178,6 +205,28 @@ function reception_render_member_bio( $attributes = array() ) {
 
 	return sprintf( $container, $class, $member_bio );
 }
+
+/**
+ * Adds a path to preload on front end for the member's bio block.
+ *
+ * @since 1.0.0
+ *
+ * @param array $paths List of paths to preload.
+ * @return array List of paths to preload.
+ */
+function reception_member_bio_preload_path( $paths = array() ) {
+	if ( bp_is_my_profile() ) {
+		$paths = array_merge(
+			$paths,
+			array(
+				'/wp/v2/users/me?context=edit',
+			)
+		);
+	}
+
+	return $paths;
+}
+add_filter( 'reception_blocks_preload_paths', 'reception_member_bio_preload_path' );
 
 /**
  * Get the member's front block template ID.

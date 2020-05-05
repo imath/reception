@@ -55,6 +55,32 @@ function reception_content() {
 		return;
 	}
 
+	/**
+	 * Preload common data by specifying an array of REST API paths that will be preloaded.
+	 *
+	 * Filters the array of paths that will be preloaded.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string[] $preload_paths Array of paths to preload.
+	 * @param WP_Post  $reception The reception front page content.
+	 */
+	$preload_paths = apply_filters( 'reception_blocks_preload_paths', array(), $reception );
+
+	if ( $preload_paths ) {
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		wp_add_inline_script(
+			'wp-api-fetch',
+			sprintf( 'wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( %s ) );', wp_json_encode( $preload_data ) ),
+			'after'
+		);
+	}
+
 	add_filter( 'get_reception_content', 'do_blocks', 9 );
 	add_filter( 'get_reception_content', 'wptexturize' );
 	add_filter( 'get_reception_content', 'convert_smilies', 20 );
