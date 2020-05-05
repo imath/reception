@@ -130,8 +130,9 @@ function reception_register_scripts() {
 		return;
 	}
 
-	$js_base_url = trailingslashit( reception()->url ) . 'js/scripts/';
-	$version     = reception_get_version();
+	$js_base_url  = trailingslashit( reception()->url ) . 'js/scripts/';
+	$css_base_url = trailingslashit( reception()->url ) . 'assets/css/';
+	$version      = reception_get_version();
 
 	wp_register_script(
 		'reception-script-member-bio',
@@ -145,6 +146,15 @@ function reception_register_scripts() {
 		),
 		$version,
 		true
+	);
+
+	wp_register_style(
+		'reception-script-member-bio',
+		$css_base_url . 'script-member-bio.css',
+		array(
+			'wp-components',
+		),
+		$version
 	);
 }
 add_action( 'bp_enqueue_scripts', 'reception_register_scripts', 1 );
@@ -172,7 +182,7 @@ function reception_render_member_bio( $attributes = array() ) {
 	if ( bp_is_my_profile() ) {
 		$class = 'dynamic';
 		wp_enqueue_script( 'reception-script-member-bio' );
-		wp_enqueue_style( 'wp-components' );
+		wp_enqueue_style( 'reception-script-member-bio' );
 
 		return sprintf( $container, $class, '' );
 	} elseif ( bp_displayed_user_id() ) {

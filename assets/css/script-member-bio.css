@@ -1,0 +1,21 @@
+/* Style for the Member's bio script */
+.block-editor-rich-text__editable [data-rich-text-placeholder] {
+	pointer-events: none;
+}
+
+.block-editor-rich-text__editable [data-rich-text-placeholder]::after {
+	content: attr(data-rich-text-placeholder);
+	opacity: 0.62;
+}
+
+.block-editor-rich-text__editable:focus {
+	outline: none;
+}
+
+.block-editor-rich-text__editable:focus [data-rich-text-format-boundary] {
+	border-radius: 2px;
+}
+
+.block-editor-rich-text__editable:focus:not(.keep-placeholder-on-focus) [data-rich-text-placeholder]::after {
+	display: none;
+}
