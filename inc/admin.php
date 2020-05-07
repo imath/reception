@@ -52,6 +52,11 @@ function reception_admin_updater() {
 	$db_version      = bp_get_option( '_reception_version', '' );
 	$current_version = reception_get_version();
 
+	// Réception is up to date.
+	if ( $db_version && version_compare( $db_version, $current_version, '=' ) ) {
+		return;
+	}
+
 	if ( ! $db_version ) {
 		reception_admin_install();
 	} elseif ( version_compare( $db_version, $current_version, '<' ) ) {
