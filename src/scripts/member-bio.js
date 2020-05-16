@@ -12,7 +12,9 @@ class MemberBio extends Component {
 		super( ...arguments );
 
 		this.state = {
+			title: '',
 			description: '',
+			displayName: '',
 			loaded: false,
 			previousDescription: '',
 		};
@@ -33,9 +35,17 @@ class MemberBio extends Component {
 						previousDescription: description,
 					} );
 				}
+
+				if ( user && user.name ) {
+					this.setState( { displayName: user.name } );
+				}
 			} );
 
 			this.setState( { loaded: true } );
+		}
+
+		if ( window.receptionMemberBio && window.receptionMemberBio.title ) {
+			this.setState( { title: window.receptionMemberBio.title } );
 		}
 	}
 
@@ -59,10 +69,13 @@ class MemberBio extends Component {
 	}
 
 	render() {
-		const { description, previousDescription } = this.state;
+		const { description, previousDescription, title, displayName } = this.state;
 
 		return(
 			<Fragment>
+				{ title && '' !== title && (
+					<h3>{ title.replace( '{{member.name}}', displayName ) }</h3>
+				) }
 				<RichText
 					value={ description }
 					onChange={ ( text ) => this.setState( { description: text } ) }

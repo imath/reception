@@ -182,6 +182,14 @@ function reception_render_member_bio( $attributes = array() ) {
 	if ( bp_is_my_profile() ) {
 		$class = 'dynamic';
 		wp_enqueue_script( 'reception-script-member-bio' );
+		wp_localize_script(
+			'reception-script-member-bio',
+			'receptionMemberBio',
+			array(
+				'title' => $params['blockTitle'],
+			)
+		);
+
 		wp_enqueue_style( 'reception-script-member-bio' );
 
 		return sprintf( $container, $class, '' );
@@ -203,9 +211,10 @@ function reception_render_member_bio( $attributes = array() ) {
 	}
 
 	if ( $params['blockTitle'] ) {
-		$member_bio = sprintf(
+		$block_title = str_replace( '{{member.name}}', bp_core_get_user_displayname( $user_id ), $params['blockTitle'] );
+		$member_bio  = sprintf(
 			'<h3>%1$s</h3>%2$s<p>%3$s</p>',
-			esc_html( $params['blockTitle'] ),
+			esc_html( $block_title ),
 			"\n",
 			$member_bio
 		);
