@@ -1,0 +1,12 @@
+.reception-block-member-contact label {
+	display: block;
+}
+
+.reception-block-member-contact label:not(:first-child) {
+	margin-top: 1em;
+}
+
+.reception-block-member-contact input,
+.reception-block-member-contact textarea {
+	width: 98%;
+}

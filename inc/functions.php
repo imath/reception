@@ -85,7 +85,8 @@ add_action( 'bp_init', 'reception_init' );
  * @since 1.0.0
  */
 function reception_init_blocks() {
-	$js_base_url = trailingslashit( reception()->url ) . 'js/blocks/';
+	$js_base_url  = trailingslashit( reception()->url ) . 'js/blocks/';
+	$css_base_url = trailingslashit( reception()->url ) . 'assets/css/';
 
 	bp_register_block(
 		array(
@@ -99,6 +100,31 @@ function reception_init_blocks() {
 			),
 			'editor_script'      => 'reception-block-member-bio',
 			'editor_script_url'  => $js_base_url . 'member-bio.js',
+			'editor_script_deps' => array(
+				'wp-blocks',
+				'wp-element',
+				'wp-components',
+				'wp-i18n',
+				'wp-editor',
+				'wp-block-editor',
+			),
+		)
+	);
+
+	bp_register_block(
+		array(
+			'name'               => 'reception/member-contact-form',
+			'render_callback'    => 'reception_render_member_contact_form',
+			'attributes'         => array(
+				'blockTitle' => array(
+					'type'    => 'string',
+					'default' => __( 'Contacter ce membre', 'reception' ),
+				),
+			),
+			'editor_script'      => 'reception-block-member-contact-form',
+			'editor_script_url'  => $js_base_url . 'member-contact-form.js',
+			'style'              => 'reception-block-member-contact-form',
+			'style_url'          => $css_base_url . 'block-member-contact-form.css',
 			'editor_script_deps' => array(
 				'wp-blocks',
 				'wp-element',
@@ -223,6 +249,61 @@ function reception_render_member_bio( $attributes = array() ) {
 	}
 
 	return sprintf( $container, $class, $member_bio );
+}
+
+/**
+ * Renders the Réception Member's contact form block.
+ *
+ * @since 1.0.0
+ *
+ * @param array $attributes The block attributes.
+ * @return string HTML output.
+ */
+function reception_render_member_contact_form( $attributes = array() ) {
+	$user_id = 0;
+	$class   = 'static';
+
+	$container = '<div class="reception-block-member-contact">%s</div>';
+	$params    = wp_parse_args(
+		$attributes,
+		array(
+			'blockTitle' => '',
+		)
+	);
+
+	if ( bp_displayed_user_id() ) {
+		$user_id = bp_displayed_user_id();
+	} else {
+		$user_id = get_current_user_id();
+	}
+
+	if ( ! $user_id ) {
+		return '';
+	}
+
+	$member_contact_form = sprintf(
+		'<label for="reception-email">%1$s</label><input type="email" name="reception-email" id="reception-email">%2$s
+		<label for="reception-name">%3$s</label><input type="text" name="reception-name" id="reception-name">%2$s
+		<label for="reception-message">%4$s</label><textarea name="reception-message" id="reception-message"></textarea>',
+		esc_html__( 'Votre e-mail', 'reception' ),
+		"\n",
+		esc_html__( 'Votre nom', 'reception' ),
+		esc_html__( 'Votre message', 'reception' )
+	);
+
+	if ( $params['blockTitle'] ) {
+		$block_title = str_replace( '{{member.name}}', bp_core_get_user_displayname( $user_id ), $params['blockTitle'] );
+		$member_contact_form  = sprintf(
+			'<h3>%1$s</h3>%2$s<p class="reception-member-contact-form-content">%3$s</p>',
+			esc_html( $block_title ),
+			"\n",
+			$member_contact_form
+		);
+	} else {
+		$member_contact_form = '<p class="reception-member-contact-form-content">' . $member_contact_form . '</p>';
+	}
+
+	return sprintf( $container, $member_contact_form );
 }
 
 /**
