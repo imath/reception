@@ -12,6 +12,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Install the DB tables needed by the plugin.
+ *
+ * @since 1.0.0
+ */
+function reception_install_tables() {
+	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+	$charset_collate = $GLOBALS['wpdb']->get_charset_collate();
+	$prefix          = bp_core_get_table_prefix();
+
+	$sql[] = "CREATE TABLE {$prefix}reception_verified_emails (
+		id bigint(20) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		email_hash varchar(255) NOT NULL default '',
+		confirmation_code bigint(20) NOT NULL,
+		is_confirmed bool DEFAULT 0,
+		is_spam bool DEFAULT 0,
+		date_confirmed datetime NOT NULL,
+		date_last_email_sent datetime NOT NULL
+	) {$charset_collate};";
+
+	dbDelta( $sql );
+}
+
+/**
  * Install/Reinstall Plugin's emails.
  *
  * @since 1.0.0
@@ -71,6 +95,9 @@ add_action( 'bp_core_install_emails', 'reception_install_emails' );
 function reception_admin_install() {
 	// Install emails.
 	reception_install_emails();
+
+	// Install tables.
+	reception_install_tables();
 
 	// Install members home page template.
 	$default_template_id = bp_get_option( '_reception_default_template_id', 0 );

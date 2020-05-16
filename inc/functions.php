@@ -281,15 +281,19 @@ function reception_render_member_contact_form( $attributes = array() ) {
 		return '';
 	}
 
-	$member_contact_form = sprintf(
-		'<label for="reception-email">%1$s</label><input type="email" name="reception-email" id="reception-email">%2$s
-		<label for="reception-name">%3$s</label><input type="text" name="reception-name" id="reception-name">%2$s
-		<label for="reception-message">%4$s</label><textarea name="reception-message" id="reception-message"></textarea>',
-		esc_html__( 'Votre e-mail', 'reception' ),
-		"\n",
-		esc_html__( 'Votre nom', 'reception' ),
-		esc_html__( 'Votre message', 'reception' )
-	);
+	if ( bp_is_user() ) {
+		$member_contact_form = '';
+	} else {
+		$member_contact_form = sprintf(
+			'<label for="reception-email">%1$s</label><input type="email" name="reception-email" id="reception-email">%2$s
+			<label for="reception-name">%3$s</label><input type="text" name="reception-name" id="reception-name">%2$s
+			<label for="reception-message">%4$s</label><textarea name="reception-message" id="reception-message"></textarea>',
+			esc_html__( 'Votre e-mail', 'reception' ),
+			"\n",
+			esc_html__( 'Votre nom', 'reception' ),
+			esc_html__( 'Votre message', 'reception' )
+		);
+	}
 
 	if ( $params['blockTitle'] ) {
 		$block_title = str_replace( '{{member.name}}', bp_core_get_user_displayname( $user_id ), $params['blockTitle'] );
