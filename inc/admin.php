@@ -49,35 +49,41 @@ function reception_install_emails() {
 		$switched = true;
 	}
 
-	// Get Emails
+	// Get Emails.
 	$email_types = reception_get_email_templates();
 
-	// Set email types
-	foreach( $email_types as $email_term => $term_args ) {
+	// Set email types.
+	foreach ( $email_types as $email_term => $term_args ) {
 		if ( term_exists( $email_term, bp_get_email_tax_type() ) ) {
 			$email_type = get_term_by( 'slug', $email_term, bp_get_email_tax_type() );
 
 			$email_types[ $email_term ]['term_id'] = $email_type->term_id;
 		} else {
-			$term = wp_insert_term( $email_term, bp_get_email_tax_type(), array(
-				'description' => $term_args['description'],
-			) );
+			$term = wp_insert_term(
+				$email_term,
+				bp_get_email_tax_type(),
+				array(
+					'description' => $term_args['description'],
+				)
+			);
 
 			$email_types[ $email_term ]['term_id'] = $term['term_id'];
 		}
 
-		// Insert Email templates if needed
+		// Insert Email templates if needed.
 		if ( ! empty( $email_types[ $email_term ]['term_id'] ) && ! is_a( bp_get_email( $email_term ), 'BP_Email' ) ) {
-			wp_insert_post( array(
-				'post_status'  => 'publish',
-				'post_type'    => bp_get_email_post_type(),
-				'post_title'   => $email_types[ $email_term ]['post_title'],
-				'post_content' => $email_types[ $email_term ]['post_content'],
-				'post_excerpt' => $email_types[ $email_term ]['post_excerpt'],
-				'tax_input'    => array(
-					bp_get_email_tax_type() => array( $email_types[ $email_term ]['term_id'] )
-				),
-			) );
+			wp_insert_post(
+				array(
+					'post_status'  => 'publish',
+					'post_type'    => bp_get_email_post_type(),
+					'post_title'   => $email_types[ $email_term ]['post_title'],
+					'post_content' => $email_types[ $email_term ]['post_content'],
+					'post_excerpt' => $email_types[ $email_term ]['post_excerpt'],
+					'tax_input'    => array(
+						bp_get_email_tax_type() => array( $email_types[ $email_term ]['term_id'] ),
+					),
+				)
+			);
 		}
 	}
 

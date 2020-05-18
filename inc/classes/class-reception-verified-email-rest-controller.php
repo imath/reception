@@ -49,6 +49,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'create_item' ),
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
+					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -56,11 +57,11 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base .  '/(?P<id>[\d]+)',
+			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
 				'args'   => array(
 					'id' => array(
-						'description' => __( 'Unique identifier for the visitor.', 'reception' ),
+						'description' => __( 'Un identifiant numérique unique pour l’e-mail vérifié.', 'reception' ),
 						'type'        => 'integer',
 					),
 				),
@@ -161,6 +162,27 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
+		$email     = $request->get_param( 'email' );
+		$name      = $request->get_param( 'name' );
+		$member_id = $request->get_param( 'member_id' );
+
+		// Get the member the visitor wants to contact.
+		$member = bp_rest_get_user( $member_id );
+
+		if ( ! $member ) {
+			// Return an error.
+			return new WP_Error(
+				'reception_create_verified_email_unknown_member',
+				__( 'Désolé, la personne que vous souhaitez contacter ne semble pas être un membre du site.', 'reception' ),
+				array(
+					'status' => 500,
+				)
+			);
+		}
+
+		// Get the member url.
+		$member_url = bp_core_get_userlink( $member->ID, false, true );
+
 		// Return an error.
 		return new WP_Error(
 			'reception_create_verified_email_failed',
@@ -244,6 +266,43 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Set specific arguments for the CREATABLE method.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $method Optional. HTTP method of the request.
+	 * @return array Endpoint arguments.
+	 */
+	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
+		$args = WP_REST_Controller::get_endpoint_args_for_item_schema( $method );
+
+		if ( WP_REST_Server::CREATABLE === $method ) {
+			$args['context']['default'] = 'edit';
+			$args['email']              = array(
+				'description' => __( 'L’adresse e-mail du visiteur.', 'reception' ),
+				'type'        => 'string',
+				'format'      => 'email',
+				'context'     => array( 'edit' ),
+				'required'    => true,
+			);
+			$args['name']               = array(
+				'description' => __( 'Le nom du visiteur souhaitant contacter le membre.', 'reception' ),
+				'type'        => 'string',
+				'context'     => array( 'edit' ),
+				'required'    => true,
+			);
+			$args['member_id']          = array(
+				'description' => __( 'L’identifiant numérique unique du membre à contacter.', 'reception' ),
+				'type'        => 'integer',
+				'context'     => array( 'edit' ),
+				'required'    => true,
+			);
+		}
+
+		return $args;
+	}
+
+	/**
 	 * Retrieves the query params for the verified emails collection.
 	 *
 	 * @since 1.0.0
@@ -279,13 +338,13 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 				'type'       => 'object',
 				// Base properties for every verified email.
 				'properties' => array(
-					'id'            => array(
-						'context'           => array( 'view', 'edit' ),
-						'description'       => __( 'Un identifiant numérique unique pour l’e-mail vérifié.', 'reception' ),
-						'readonly'          => true,
-						'type'              => 'integer',
+					'id'                => array(
+						'context'     => array( 'view', 'edit' ),
+						'description' => __( 'Un identifiant numérique unique pour l’e-mail vérifié.', 'reception' ),
+						'readonly'    => true,
+						'type'        => 'integer',
 					),
-					'email'         => array(
+					'email'             => array(
 						'context'           => array( 'view', 'edit' ),
 						'description'       => __( 'La version hachée de l’email vérifié.', 'reception' ),
 						'type'              => 'string',
@@ -293,7 +352,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 						'validate_callback' => 'rest_validate_request_arg',
 						'default'           => '',
 					),
-					'code'         => array(
+					'code'              => array(
 						'context'           => array( 'view', 'edit' ),
 						'description'       => __( 'Le code de validation génére pour la vérification de l’email.', 'reception' ),
 						'type'              => 'string',
@@ -302,7 +361,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 						'readonly'          => true,
 						'default'           => '',
 					),
-					'confirmed'   => array(
+					'confirmed'         => array(
 						'context'           => array( 'view', 'edit' ),
 						'description'       => __( 'Informe si l’e-mail a été vérifié.', 'reception' ),
 						'type'              => 'boolean',
@@ -311,7 +370,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 						'readonly'          => true,
 						'default'           => false,
 					),
-					'spam'     => array(
+					'spam'              => array(
 						'context'           => array( 'view', 'edit' ),
 						'description'       => __( 'Informe si l’e-mail a été marqué comme spam.', 'reception' ),
 						'type'              => 'boolean',
@@ -320,14 +379,14 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 						'readonly'          => true,
 						'default'           => false,
 					),
-					'confirmation_date'    => array(
+					'confirmation_date' => array(
 						'description' => __( 'Date à laquelle l’e-mail a été vérifié.', 'reception' ),
 						'type'        => 'string',
 						'format'      => 'date-time',
 						'context'     => array( 'edit' ),
 						'readonly'    => true,
 					),
-					'last_use_date'    => array(
+					'last_use_date'     => array(
 						'description' => __( 'Date à laquelle l’e-mail a été utilisé pour la dernière fois.', 'reception' ),
 						'type'        => 'string',
 						'format'      => 'date-time',

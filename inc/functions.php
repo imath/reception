@@ -80,6 +80,17 @@ function reception_init() {
 add_action( 'bp_init', 'reception_init' );
 
 /**
+ * Registers the REST API routes.
+ *
+ * @since 1.0.0
+ */
+function reception_register_routes() {
+	$verified_email_controller = new Reception_Verified_Email_REST_Controller();
+	$verified_email_controller->register_routes();
+}
+add_action( 'bp_rest_api_init', 'reception_register_routes' );
+
+/**
  * Réception Blocks initialization.
  *
  * @since 1.0.0
@@ -151,6 +162,11 @@ function reception_init_blocks() {
 }
 add_action( 'bp_blocks_init', 'reception_init_blocks' );
 
+/**
+ * Registers front-end scripts and styles.
+ *
+ * @since 1.0.0
+ */
 function reception_register_scripts() {
 	if ( ! bp_is_my_profile() ) {
 		return;
@@ -296,8 +312,8 @@ function reception_render_member_contact_form( $attributes = array() ) {
 	}
 
 	if ( $params['blockTitle'] ) {
-		$block_title = str_replace( '{{member.name}}', bp_core_get_user_displayname( $user_id ), $params['blockTitle'] );
-		$member_contact_form  = sprintf(
+		$block_title         = str_replace( '{{member.name}}', bp_core_get_user_displayname( $user_id ), $params['blockTitle'] );
+		$member_contact_form = sprintf(
 			'<h3>%1$s</h3>%2$s<p class="reception-member-contact-form-content">%3$s</p>',
 			esc_html( $block_title ),
 			"\n",
@@ -374,34 +390,37 @@ function reception_has_front() {
  * @return array An associative array containing the email type and the email template data.
  */
 function reception_get_email_templates() {
-	return apply_filters( 'reception_get_email_templates', array(
-		'reception-verify-visitor' => array(
-			'description' => _x( 'Vérification de l’e-mail d’un visiteur du site', 'BP Email message description', 'reception' ),
-			'term_id'     => 0,
-			'post_title'   => _x( '[{{{site.name}}}] Code de validation de votre e-mail', 'BP Email message object', 'reception' ),
-			'post_content' => _x( "Bonjour {{reception.visitorname}},\n\nVous souhaitez contacter {{reception.membername}}. Afin de nous assurer de la validité de votre adresse e-mail, merci de saisir ce code {{{reception.code}}} dans le champ \"Code de validation\" du formulaire de contact de {{reception.membername}}.\n\nPour accéder à nouveau au formulaire de contact, vous pouvez cliquer sur ce lien : <a href=\"{{{reception.memberurl}}}\">poursuivre mon message à {{reception.membername}}</a>.\n\nCette opération de validation est nécessaire lors de votre première prise de contact via notre site, merci de votre compréhension.", 'BP Email message html content', 'reception' ),
-			'post_excerpt' => _x( "Bonjour {{reception.visitorname}},\n\nVous souhaitez contacter {{reception.membername}}. Afin de nous assurer de la validité de votre adresse e-mail, merci de saisir ce code {{{reception.code}}} dans le champ \"Code de validation\" du formulaire de contact de {{reception.membername}}.\n\nPour accéder à nouveau au formulaire de contact, vous pouvez cliquer sur ce lien :\n\n{{{reception.memberurl}}}.\n\nCette opération de validation est nécessaire lors de votre première prise de contact via notre site, merci de votre compréhension.", 'BP Email message text content', 'reception' ),
-		),
-		'reception-confirm-visitor' => array(
-			'description' => _x( 'Confirmation de l’envoi d’un e-mail par un visiteur du site', 'BP Email message description', 'reception' ),
-			'term_id'     => 0,
-			'post_title'   => _x( '[{{{site.name}}}] Confirmation de l’envoi de votre message', 'BP Email message object', 'reception' ),
-			'post_content' => _x( "{{reception.visitorname}},\n\nNous avons bien envoyé votre message à {{reception.membername}}. Il vous répondra dans les meilleurs délais.\n\nBonne journée.", 'BP Email message html content', 'reception' ),
-			'post_excerpt' => _x( "{{reception.visitorname}},\n\nNous avons bien envoyé votre message à {{reception.membername}}. Il vous répondra dans les meilleurs délais.\n\nBonne journée.", 'BP Email message text content', 'reception' ),
-		),
-		'reception-contact-member' => array(
-			'description' => _x( 'Un visiteur du site contacte un membre', 'BP Email message description', 'reception' ),
-			'term_id'     => 0,
-			'post_title'   => _x( '[{{{site.name}}}] Un visiteur du site vous contacte', 'BP Email message object', 'reception' ),
-			'post_content' => _x( "{{reception.visitorname}} ({{reception.visitoremail}}) vous a contacté. Voici son message :\n\n{{{reception.content}}}\n\nVous pouvez lui <a href=\"mailto:{{{reception.visitoremail}}}\">répondre directement</a> ou utiliser le site afin d’éviter de lui communiquer votre adresse e-mail : <a href=\"{{{reception.memberurl}}}\">répondre via le site</a>.", 'BP Email message html content', 'reception' ),
-			'post_excerpt' => _x( "{{reception.visitorname}} <{{reception.visitoremail}}> vous a contacté. Voici son message :\n\n{{reception.content}}\n\nVous pouvez lui répondre directement en utilisant son email <{{reception.visitoremail}}> ou utiliser le site afin d’éviter de lui communiquer votre adresse e-mail :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
-		),
-		'reception-reply-visitor' => array(
-			'description' => _x( 'Un membre du site répond à un visiteur', 'BP Email message description', 'reception' ),
-			'term_id'     => 0,
-			'post_title'   => _x( '[{{{site.name}}}] {{reception.membername}} vous a répondu', 'BP Email message object', 'reception' ),
-			'post_content' => _x( "Bonjour,\n\nVoici cette réponse :\n\n{{{reception.content}}}\n\nPour contacter à nouveau {{reception.membername}}, vous pouvez utiliser son <a href=\"{{{reception.memberurl}}}\">formulaire de contact depuis notre site</a>.", 'BP Email message html content', 'reception' ),
-			'post_excerpt' => _x( "Bonjour,\n\nVoici cette réponse :\n\n{{reception.content}}\n\nPour contacter à nouveau {{reception.membername}}, vous pouvez utiliser son formulaire de contact depuis notre site :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
-		),
-	) );
+	return apply_filters(
+		'reception_get_email_templates',
+		array(
+			'reception-verify-visitor'  => array(
+				'description'  => _x( 'Vérification de l’e-mail d’un visiteur du site', 'BP Email message description', 'reception' ),
+				'term_id'      => 0,
+				'post_title'   => _x( '[{{{site.name}}}] Code de validation de votre e-mail', 'BP Email message object', 'reception' ),
+				'post_content' => _x( "Bonjour {{reception.visitorname}},\n\nVous souhaitez contacter {{reception.membername}}. Afin de nous assurer de la validité de votre adresse e-mail, merci de saisir ce code {{{reception.code}}} dans le champ \"Code de validation\" du formulaire de contact de {{reception.membername}}.\n\nPour accéder à nouveau au formulaire de contact, vous pouvez cliquer sur ce lien : <a href=\"{{{reception.memberurl}}}\">poursuivre mon message à {{reception.membername}}</a>.\n\nCette opération de validation est nécessaire lors de votre première prise de contact via notre site, merci de votre compréhension.", 'BP Email message html content', 'reception' ),
+				'post_excerpt' => _x( "Bonjour {{reception.visitorname}},\n\nVous souhaitez contacter {{reception.membername}}. Afin de nous assurer de la validité de votre adresse e-mail, merci de saisir ce code {{{reception.code}}} dans le champ \"Code de validation\" du formulaire de contact de {{reception.membername}}.\n\nPour accéder à nouveau au formulaire de contact, vous pouvez cliquer sur ce lien :\n\n{{{reception.memberurl}}}.\n\nCette opération de validation est nécessaire lors de votre première prise de contact via notre site, merci de votre compréhension.", 'BP Email message text content', 'reception' ),
+			),
+			'reception-confirm-visitor' => array(
+				'description'  => _x( 'Confirmation de l’envoi d’un e-mail par un visiteur du site', 'BP Email message description', 'reception' ),
+				'term_id'      => 0,
+				'post_title'   => _x( '[{{{site.name}}}] Confirmation de l’envoi de votre message', 'BP Email message object', 'reception' ),
+				'post_content' => _x( "{{reception.visitorname}},\n\nNous avons bien envoyé votre message à {{reception.membername}}. Il vous répondra dans les meilleurs délais.\n\nBonne journée.", 'BP Email message html content', 'reception' ),
+				'post_excerpt' => _x( "{{reception.visitorname}},\n\nNous avons bien envoyé votre message à {{reception.membername}}. Il vous répondra dans les meilleurs délais.\n\nBonne journée.", 'BP Email message text content', 'reception' ),
+			),
+			'reception-contact-member'  => array(
+				'description'  => _x( 'Un visiteur du site contacte un membre', 'BP Email message description', 'reception' ),
+				'term_id'      => 0,
+				'post_title'   => _x( '[{{{site.name}}}] Un visiteur du site vous contacte', 'BP Email message object', 'reception' ),
+				'post_content' => _x( "{{reception.visitorname}} ({{reception.visitoremail}}) vous a contacté. Voici son message :\n\n{{{reception.content}}}\n\nVous pouvez lui <a href=\"mailto:{{{reception.visitoremail}}}\">répondre directement</a> ou utiliser le site afin d’éviter de lui communiquer votre adresse e-mail : <a href=\"{{{reception.memberurl}}}\">répondre via le site</a>.", 'BP Email message html content', 'reception' ),
+				'post_excerpt' => _x( "{{reception.visitorname}} <{{reception.visitoremail}}> vous a contacté. Voici son message :\n\n{{reception.content}}\n\nVous pouvez lui répondre directement en utilisant son email <{{reception.visitoremail}}> ou utiliser le site afin d’éviter de lui communiquer votre adresse e-mail :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
+			),
+			'reception-reply-visitor'   => array(
+				'description'  => _x( 'Un membre du site répond à un visiteur', 'BP Email message description', 'reception' ),
+				'term_id'      => 0,
+				'post_title'   => _x( '[{{{site.name}}}] {{reception.membername}} vous a répondu', 'BP Email message object', 'reception' ),
+				'post_content' => _x( "Bonjour,\n\nVoici cette réponse :\n\n{{{reception.content}}}\n\nPour contacter à nouveau {{reception.membername}}, vous pouvez utiliser son <a href=\"{{{reception.memberurl}}}\">formulaire de contact depuis notre site</a>.", 'BP Email message html content', 'reception' ),
+				'post_excerpt' => _x( "Bonjour,\n\nVoici cette réponse :\n\n{{reception.content}}\n\nPour contacter à nouveau {{reception.membername}}, vous pouvez utiliser son formulaire de contact depuis notre site :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
+			),
+		)
+	);
 }

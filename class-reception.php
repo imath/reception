@@ -45,6 +45,9 @@ final class Reception {
 	 * @since 1.0.0
 	 */
 	private function __construct() {
+		// Autoload Classes.
+		spl_autoload_register( array( $this, 'autoload' ) );
+
 		// Includes path.
 		$inc_path = plugin_dir_path( __FILE__ ) . 'inc/';
 
@@ -61,6 +64,30 @@ final class Reception {
 		if ( is_admin() ) {
 			require $inc_path . 'admin.php';
 		}
+	}
+
+	/**
+	 * Class Autoload function.
+	 *
+	 * @since  1.0.0
+	 *
+	 * @param  string $class The class name.
+	 */
+	public function autoload( $class ) {
+		$name = str_replace( '_', '-', strtolower( $class ) );
+
+		if ( 0 !== strpos( $name, 'reception' ) ) {
+			return;
+		}
+
+		$path = plugin_dir_path( __FILE__ ) . "inc/classes/class-{$name}.php";
+
+		// Sanity check.
+		if ( ! file_exists( $path ) ) {
+			return;
+		}
+
+		require $path;
 	}
 
 	/**
