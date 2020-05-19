@@ -19,6 +19,14 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 	protected $member;
 	public $server;
 
+	public static function setUpBeforeClass() {
+		parent::setUpBeforeClass();
+
+		require_once trailingslashit( buddypress()->plugin_dir ) . 'bp-core/admin/bp-core-admin-schema.php';
+
+		bp_core_install_emails();
+	}
+
 	public function setUp() {
 		parent::setUp();
 
@@ -92,6 +100,9 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 		) );
 
 		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertTrue( hash_equals( $get_data['email'], wp_hash( 'foo@bar.com' ) ) );
 	}
 
 	/**

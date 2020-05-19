@@ -528,7 +528,8 @@ function reception_insert_email_to_verify( $email = '' ) {
 
 	return array(
 		'id'                => $wpdb->insert_id,
-		'email'             => $email,
+		'email_hash'        => $email_hash,
 		'confirmation_code' => $confirmation_code,
+		'email'             => $email,
 	);
 }

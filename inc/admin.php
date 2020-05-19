@@ -25,7 +25,7 @@ function reception_install_tables() {
 	$sql[] = "CREATE TABLE {$prefix}reception_verified_emails (
 		id bigint(20) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 		email_hash varchar(255) NOT NULL default '',
-		confirmation_code bigint(20) NOT NULL,
+		confirmation_code varchar(50) NOT NULL,
 		is_confirmed bool DEFAULT 0,
 		is_spam bool DEFAULT 0,
 		date_confirmed datetime NOT NULL,
@@ -73,18 +73,17 @@ function reception_install_emails() {
 
 		// Insert Email templates if needed.
 		if ( ! empty( $email_types[ $email_term ]['term_id'] ) && ! is_a( bp_get_email( $email_term ), 'BP_Email' ) ) {
-			wp_insert_post(
+			$post_id = wp_insert_post(
 				array(
 					'post_status'  => 'publish',
 					'post_type'    => bp_get_email_post_type(),
 					'post_title'   => $email_types[ $email_term ]['post_title'],
 					'post_content' => $email_types[ $email_term ]['post_content'],
 					'post_excerpt' => $email_types[ $email_term ]['post_excerpt'],
-					'tax_input'    => array(
-						bp_get_email_tax_type() => array( $email_types[ $email_term ]['term_id'] ),
-					),
 				)
 			);
+
+			wp_set_object_terms( $post_id, $email_types[ $email_term ]['term_id'], bp_get_email_tax_type() );
 		}
 	}
 

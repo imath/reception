@@ -182,15 +182,60 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 
 		// Get the member url.
 		$member_url = bp_core_get_userlink( $member->ID, false, true );
+		$inserted   = reception_insert_email_to_verify( $email );
 
-		// Return an error.
-		return new WP_Error(
-			'reception_create_verified_email_failed',
-			__( 'Désolé, votre e-mail n’a pu être soumis pour vérification.', 'reception' ),
+		if ( is_wp_error( $inserted ) ) {
+			$inserted->add_data(
+				array(
+					'status' => 500,
+				)
+			);
+
+			return $inserted;
+		}
+
+		$notify = bp_send_email(
+			'reception-verify-visitor',
+			$inserted['email'],
 			array(
-				'status' => 500,
+				'tokens' => array(
+					'reception.visitorname' => esc_html( $name ),
+					'reception.membername'  => esc_html( $member->display_name ),
+					'reception.code'        => $inserted['confirmation_code'],
+					'reception.memberurl'   => esc_url_raw( $member_url ),
+				),
 			)
 		);
+
+		if ( is_wp_error( $notify ) ) {
+			return new WP_Error(
+				'reception_create_verified_email_failed',
+				__( 'Désolé, nous ne sommes pas parvenus à vous envoyer le code de confirmation.', 'reception' ),
+				array(
+					'status' => 500,
+				)
+			);
+		}
+
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->prepare_item_for_response(
+			wp_parse_args(
+				$inserted,
+				array(
+					'id'                   => 0,
+					'email_hash'           => '',
+					'confirmation_code'    => '',
+					'is_confirmed'         => false,
+					'is_spam'              => false,
+					'date_confirmed'       => '0000-00-00 00:00:00',
+					'date_last_email_sent' => '0000-00-00 00:00:00',
+				)
+			),
+			$request
+		);
+
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -250,19 +295,48 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param object          $email Verified email object.
+	 * @param array           $email Verified email data.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response
 	 */
 	public function prepare_item_for_response( $email, $request ) {
-		$data    = get_object_vars( $email );
+		$data   = array();
+		$fields = $this->get_fields_for_response( $request );
+
+		if ( in_array( 'id', $fields, true ) ) {
+			$data['id'] = (int) $email['id'];
+		}
+
+		if ( in_array( 'email', $fields, true ) ) {
+			$data['email'] = $email['email_hash'];
+		}
+
+		if ( in_array( 'code', $fields, true ) ) {
+			$data['code'] = $email['confirmation_code'];
+		}
+
+		if ( in_array( 'confirmed', $fields, true ) ) {
+			$data['confirmed'] = $email['is_confirmed'];
+		}
+
+		if ( in_array( 'spam', $fields, true ) ) {
+			$data['spam'] = $email['is_spam'];
+		}
+
+		if ( in_array( 'confirmation_date', $fields, true ) ) {
+			$data['confirmation_date'] = bp_rest_prepare_date_response( $email['date_confirmed'] );
+		}
+
+		if ( in_array( 'last_use_date', $fields, true ) ) {
+			$data['last_use_date'] = bp_rest_prepare_date_response( $email['date_last_email_sent'] );
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$data    = $this->add_additional_fields_to_object( $data, $request );
-		$data    = $this->filter_response_by_context( $data, $context );
 
-		$response = rest_ensure_response( $data );
+		$data = $this->add_additional_fields_to_object( $data, $request );
+		$data = $this->filter_response_by_context( $data, $context );
 
-		return $response;
+		return rest_ensure_response( $data );
 	}
 
 	/**
