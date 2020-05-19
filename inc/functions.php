@@ -424,3 +424,111 @@ function reception_get_email_templates() {
 		)
 	);
 }
+
+/**
+ * Returns the Verified emails DB Table name.
+ *
+ * @since 1.0.0
+ *
+ * @return string The Verified emails DB Table name.
+ */
+function reception_get_email_verification_table_name() {
+	return bp_core_get_table_prefix() . 'reception_verified_emails';
+}
+
+/**
+ * Gets the status of the verification for a given email.
+ *
+ * @since 1.0.0
+ *
+ * @param string $email_hash The hash of the email.
+ * @return WP_Error|string An error if no email was given.
+ *                         The status of the verification otherwise.
+ */
+function reception_get_email_verification_status( $email_hash = '' ) {
+	if ( ! $email_hash ) {
+		return new WP_Error(
+			'reception_email_empty_error',
+			__( 'Désolé, aucune adresse e-mail fournie.', 'reception' )
+		);
+	}
+
+	global $wpdb;
+	$table  = reception_get_email_verification_table_name();
+	$retval = 'not_created';
+
+	$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE email_hash = %s", $email_hash ) ); // phpcs:ignore
+
+	if ( is_null( $row ) ) {
+		return $retval;
+	}
+
+	if ( isset( $row->confirmation_code ) && $row->confirmation_code ) {
+		$retval = 'waiting_confirmation';
+	}
+
+	if ( isset( $row->is_confirmed ) && true === (bool) $row->is_confirmed ) {
+		$retval = 'confirmed';
+	}
+
+	if ( isset( $row->is_spam ) && true === (bool) $row->is_spam ) {
+		$retval = 'spammed';
+	}
+
+	return $retval;
+}
+
+/**
+ * Inserts a new email to verify.
+ *
+ * @since 1.0.0
+ *
+ * @param string $email The email to verify.
+ * @return WP_Error|array An error on failure.
+ *                        An array containing the inserted ID, the email and the confirmation code otherwise.
+ */
+function reception_insert_email_to_verify( $email = '' ) {
+	$email = is_email( $email );
+
+	if ( ! $email ) {
+		return new WP_Error(
+			'reception_email_format_error',
+			__( 'Désolé, l’e-mail fourni ne respecte pas le format d’une adresse e-mail.', 'reception' )
+		);
+	}
+
+	$email_hash = wp_hash( $email );
+
+	if ( 'not_created' !== reception_get_email_verification_status( $email_hash ) ) {
+		return new WP_Error(
+			'reception_email_already_exists',
+			__( 'Désolé, l’e-mail fourni a déjà fait l’objet d’une demande de vérification.', 'reception' )
+		);
+	}
+
+	global $wpdb;
+	$confirmation_code = substr( md5( time() . wp_rand() . $email ), 0, 16 );
+
+	// Insert the data.
+	$inserted = $wpdb->insert( // phpcs:ignore
+		reception_get_email_verification_table_name(),
+		array(
+			'email_hash'        => $email_hash,
+			'confirmation_code' => $confirmation_code,
+		),
+		array( '%s', '%s' )
+	);
+
+	if ( 1 !== $inserted ) {
+		return new WP_Error(
+			'reception_email_insertion_error',
+			__( 'Désolé, la demande de vérification de l’e-mail fourni n’a pu être créée.', 'reception' )
+		);
+	}
+
+	return array(
+		'id'                => $wpdb->insert_id,
+		'email'             => $email,
+		'confirmation_code' => $confirmation_code,
+	);
+}

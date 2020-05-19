@@ -29,7 +29,8 @@ function reception_install_tables() {
 		is_confirmed bool DEFAULT 0,
 		is_spam bool DEFAULT 0,
 		date_confirmed datetime NOT NULL,
-		date_last_email_sent datetime NOT NULL
+		date_last_email_sent datetime NOT NULL,
+		KEY email_hash (email_hash)
 	) {$charset_collate};";
 
 	dbDelta( $sql );
