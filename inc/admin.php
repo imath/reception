@@ -292,3 +292,41 @@ function reception_admin_register_settings() {
 	}
 }
 add_action( 'bp_register_admin_settings', 'reception_admin_register_settings', 11 );
+
+/**
+ * Replace the Block Editor's WordPress logo with the current user's avatar.
+ *
+ * @since 1.0.0
+ */
+function reception_add_block_editor_inline_css() {
+	if ( 'reception' === get_post_type() ) {
+		$avatar = bp_core_fetch_avatar(
+			array(
+				'item_id' => get_current_user_id(),
+				'object'  => 'user',
+				'type'    => 'thumb',
+				'html'    => false,
+			)
+		);
+
+		wp_add_inline_style(
+			'wp-edit-post',
+			'a.components-button.edit-post-fullscreen-mode-close.has-icon {
+				padding: 0;
+			}
+
+			a.components-button.edit-post-fullscreen-mode-close.has-icon:before {
+				content: \' \';
+				width: 100%;
+				height: 100%;
+				background: url( ' . $avatar . ' ) no-repeat;
+				background-position: center;
+			}
+
+			a.components-button.edit-post-fullscreen-mode-close svg {
+				display: none;
+			}'
+		);
+	}
+}
+add_action( 'enqueue_block_editor_assets', 'reception_add_block_editor_inline_css' );
