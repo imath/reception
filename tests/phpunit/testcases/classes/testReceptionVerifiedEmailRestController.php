@@ -64,6 +64,12 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 
 		$this->assertArrayHasKey( $this->endpoint_url . '/(?P<id>[\d]+)', $routes );
 		$this->assertCount( 3, $routes[$this->endpoint_url . '/(?P<id>[\d]+)'] );
+
+		$this->assertArrayHasKey( $this->endpoint_url . '/check/(?P<email>[\S]+)', $routes );
+		$this->assertCount( 1, $routes[$this->endpoint_url . '/check/(?P<email>[\S]+)'] );
+
+		$this->assertArrayHasKey( $this->endpoint_url . '/validate/(?P<email>[\S]+)', $routes );
+		$this->assertCount( 1, $routes[$this->endpoint_url . '/validate/(?P<email>[\S]+)'] );
 	}
 
 	/**
@@ -117,6 +123,101 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 	 */
 	public function test_delete_item() {
 		$this->markTestSkipped();
+	}
+
+	/**
+	 * @group rest_check_item
+	 */
+	public function test_check_item() {
+		$request  = new WP_REST_Request( 'GET', $this->endpoint_url . sprintf( '/check/%s', 'check@mail.com' ) );
+		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertEmpty( $get_data['id'] );
+	}
+
+	/**
+	 * @group rest_check_item
+	 */
+	public function test_check_item_not_confirmed() {
+		$inserted = reception_insert_email_to_verify( 'check2@email.com' );
+		$request  = new WP_REST_Request( 'GET', $this->endpoint_url . sprintf( '/check/%s', $inserted['email'] ) );
+		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertNotEmpty( $get_data['id'] );
+		$this->assertFalse( $get_data['confirmed'] );
+	}
+
+	/**
+	 * @group rest_check_item
+	 */
+	public function test_check_item_confirmed() {
+		$inserted = reception_insert_email_to_verify( 'check3@email.com' );
+		$entry    = reception_get_email_verification_entry( $inserted['email_hash'] );
+		$verified = reception_validate_email_to_verify( $inserted['email'], $entry->confirmation_code );
+
+		$request  = new WP_REST_Request( 'GET', $this->endpoint_url . sprintf( '/check/%s', $inserted['email'] ) );
+		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertNotEmpty( $get_data['id'] );
+		$this->assertTrue( $get_data['confirmed'] );
+	}
+
+	/**
+	 * @group rest_validate_item
+	 */
+	public function test_validate_item() {
+		$inserted = reception_insert_email_to_verify( 'validate@email.com' );
+		$entry    = reception_get_email_verification_entry( $inserted['email_hash'] );
+
+		$request  = new WP_REST_Request( 'PUT', $this->endpoint_url . sprintf( '/validate/%s', $inserted['email'] ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( array(
+			'code' => $entry->confirmation_code,
+		) ) );
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertNotEmpty( $get_data['id'] );
+		$this->assertTrue( $get_data['confirmed'] );
+	}
+
+	/**
+	 * @group rest_validate_item
+	 */
+	public function test_validate_item_not_created() {
+		$request  = new WP_REST_Request( 'PUT', $this->endpoint_url . sprintf( '/validate/%s', 'validate2@email.com' ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( array(
+			'code' => 'random',
+		) ) );
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'reception_email_not_created_error', $response, 500 );
+	}
+
+	/**
+	 * @group rest_validate_item
+	 */
+	public function test_validate_item_wrong_code() {
+		$inserted = reception_insert_email_to_verify( 'validate3@email.com' );
+
+		$request  = new WP_REST_Request( 'PUT', $this->endpoint_url . sprintf( '/validate/%s', $inserted['email'] ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( array(
+			'code' => 'random',
+		) ) );
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'reception_email_wrong_code_error', $response, 500 );
 	}
 
 	/**

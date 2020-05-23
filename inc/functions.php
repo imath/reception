@@ -437,15 +437,15 @@ function reception_get_email_verification_table_name() {
 }
 
 /**
- * Gets the status of the verification for a given email.
+ * Gets the verification entry for a given email.
  *
  * @since 1.0.0
  *
  * @param string $email_hash The hash of the email.
  * @return WP_Error|string An error if no email was given.
- *                         The status of the verification otherwise.
+ *                         The verification entry otherwise.
  */
-function reception_get_email_verification_status( $email_hash = '' ) {
+function reception_get_email_verification_entry( $email_hash = '' ) {
 	if ( ! $email_hash ) {
 		return new WP_Error(
 			'reception_email_empty_error',
@@ -454,10 +454,28 @@ function reception_get_email_verification_status( $email_hash = '' ) {
 	}
 
 	global $wpdb;
-	$table  = reception_get_email_verification_table_name();
-	$retval = 'not_created';
+	$table = reception_get_email_verification_table_name();
 
-	$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE email_hash = %s", $email_hash ) ); // phpcs:ignore
+	return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE email_hash = %s", $email_hash ) ); // phpcs:ignore
+}
+
+/**
+ * Gets the status of the verification for a given email.
+ *
+ * @since 1.0.0
+ *
+ * @param object|string $email The email verification object or the hash of the email.
+ * @return WP_Error|string An error if no email was given.
+ *                         The status of the verification otherwise.
+ */
+function reception_get_email_verification_status( $email = '' ) {
+	if ( ! is_object( $email ) ) {
+		$row = reception_get_email_verification_entry( $email );
+	} else {
+		$row = $email;
+	}
+
+	$retval = 'not_created';
 
 	if ( is_null( $row ) ) {
 		return $retval;
@@ -532,4 +550,84 @@ function reception_insert_email_to_verify( $email = '' ) {
 		'confirmation_code' => $confirmation_code,
 		'email'             => $email,
 	);
+}
+
+/**
+ * Validates an email to verify.
+ *
+ * @since 1.0.0
+ *
+ * @param string $email The email to verify.
+ * @param string $code  The verification code.
+ * @return WP_Error|array An error on failure. The updated object otherwise.
+ */
+function reception_validate_email_to_verify( $email = '', $code = '' ) {
+	$email = is_email( $email );
+
+	if ( ! $email || ! $code ) {
+		return new WP_Error(
+			'reception_email_or_code_error',
+			__( 'Désolé, l’e-mail ou le code fourni ne respectent pas le format attendu.', 'reception' )
+		);
+	}
+
+	$email_hash   = wp_hash( $email );
+	$email_entry  = reception_get_email_verification_entry( $email_hash );
+	$email_status = reception_get_email_verification_status( $email_entry );
+	$email_error  = new WP_Error();
+
+	if ( 'waiting_confirmation' !== $email_status ) {
+		if ( 'not_created' === $email_status ) {
+			$email_error->add(
+				'reception_email_not_created_error',
+				__( 'Désolé, cet e-mail n’a pas été soumis pour vérification.', 'reception' )
+			);
+		} elseif ( 'confirmed' === $email_status ) {
+			$email_error->add(
+				'reception_email_confirmed_error',
+				__( 'Désolé, cet e-mail a déjà été vérifié.', 'reception' )
+			);
+		} else {
+			$email_error->add(
+				'reception_email_spammed_error',
+				__( 'Désolé, cet e-mail a été maqué comme indésirable.', 'reception' )
+			);
+		}
+
+		return $email_error;
+	}
+
+	if ( $code !== $email_entry->confirmation_code ) {
+		$email_error->add(
+			'reception_email_wrong_code_error',
+			__( 'Désolé, le code fourni n’est pas valide.', 'reception' )
+		);
+
+		return $email_error;
+	}
+
+	global $wpdb;
+
+	$update_params = array(
+		'is_confirmed'   => true,
+		'date_confirmed' => current_time( 'mysql' ),
+	);
+
+	// Update the data.
+	$updated = $wpdb->update( // phpcs:ignore
+		reception_get_email_verification_table_name(),
+		$update_params,
+		array( 'id' => $email_entry->id )
+	);
+
+	if ( 1 !== $updated ) {
+		$email_error->add(
+			'reception_email_verficiation_unknown_error',
+			__( 'Désolé, nous ne sommes pas parvenu à valider votre e-mail.', 'reception' )
+		);
+
+		return $email_error;
+	}
+
+	return array_merge( (array) $email_entry, $update_params );
 }

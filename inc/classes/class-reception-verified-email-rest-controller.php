@@ -87,6 +87,59 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
+
+		// Register the email's verified check route.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/check/(?P<email>[\S]+)',
+			array(
+				'args'   => array(
+					'email' => array(
+						'description' => __( 'L’e-mail du visiteur à vérifier.', 'reception' ),
+						'type'        => 'string',
+						'required'    => true,
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'check_item' ),
+					'permission_callback' => array( $this, 'check_item_permissions_check' ),
+					'args'                => array(
+						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+					),
+				),
+				'schema' => array( $this, 'get_item_schema' ),
+			)
+		);
+
+		// Register the email's verified validate route.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/validate/(?P<email>[\S]+)',
+			array(
+				'args'   => array(
+					'email' => array(
+						'description' => __( 'L’e-mail du visiteur à valider.', 'reception' ),
+						'type'        => 'string',
+						'required'    => true,
+					),
+					'code'  => array(
+						'description' => __( 'Le code de validation à vérifier.', 'reception' ),
+						'type'        => 'string',
+						'required'    => true,
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'validate_item' ),
+					'permission_callback' => array( $this, 'validate_item_permissions_check' ),
+					'args'                => array(
+						'context' => $this->get_context_param( array( 'default' => 'edit' ) ),
+					),
+				),
+				'schema' => array( $this, 'get_item_schema' ),
+			)
+		);
 	}
 
 	/**
@@ -139,7 +192,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	public function create_item_permissions_check( $request ) {
 		$retval = true;
 
-		// Every visitor can submit his email for verification.
+		// Every visitor can submit their email for verification.
 		if ( ! current_user_can( 'exist' ) ) {
 			$retval = new WP_Error(
 				'reception_rest_authorization_required',
@@ -291,6 +344,120 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks if the user can get the verification entry of their email.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return bool|WP_Error
+	 */
+	public function check_item_permissions_check( $request ) {
+		$retval = true;
+
+		// Every visitor can get the verification entry of their email.
+		if ( ! current_user_can( 'exist' ) ) {
+			$retval = new WP_Error(
+				'reception_rest_authorization_required',
+				__( 'Désolé, vous n’êtes pas autorisé·e à vérifier si votre e-mail a été validé.', 'reception' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		return $retval;
+	}
+
+	/**
+	 * Returns the verification entry of the visitor's email.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|WP_REST_Response Response object on success, WP_Error object on failure.
+	 */
+	public function check_item( $request ) {
+		$email      = $request->get_param( 'email' );
+		$email_hash = wp_hash( $email );
+
+		// Get the verification entry for the visitor's email.
+		$entry = reception_get_email_verification_entry( $email_hash );
+
+		$response = $this->prepare_item_for_response(
+			wp_parse_args(
+				$entry,
+				array(
+					'id'                   => 0,
+					'email_hash'           => '',
+					'confirmation_code'    => '',
+					'is_confirmed'         => false,
+					'is_spam'              => false,
+					'date_confirmed'       => '0000-00-00 00:00:00',
+					'date_last_email_sent' => '0000-00-00 00:00:00',
+				)
+			),
+			$request
+		);
+
+		return rest_ensure_response( $response );
+	}
+
+	/**
+	 * Checks if the user can check his email has been verified.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return bool|WP_Error
+	 */
+	public function validate_item_permissions_check( $request ) {
+		$retval = true;
+
+		// Every visitor can validate their email.
+		if ( ! current_user_can( 'exist' ) ) {
+			$retval = new WP_Error(
+				'reception_rest_authorization_required',
+				__( 'Désolé, vous n’êtes pas autorisé·e à valider cet e-mail.', 'reception' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		return $retval;
+	}
+
+	/**
+	 * Returns the verification status of the visitor's email.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|WP_REST_Response Response object on success, WP_Error object on failure.
+	 */
+	public function validate_item( $request ) {
+		$email = $request->get_param( 'email' );
+		$code  = $request->get_param( 'code' );
+
+		// Verify and validate the email.
+		$validated = reception_validate_email_to_verify( $email, $code );
+
+		if ( is_wp_error( $validated ) ) {
+			$validated->add_data(
+				array(
+					'status' => 500,
+				)
+			);
+
+			return $validated;
+		}
+
+		$response = $this->prepare_item_for_response( $validated, $request );
+
+		return rest_ensure_response( $response );
+	}
+
+	/**
 	 * Prepares verified email data for the response.
 	 *
 	 * @since 1.0.0
@@ -316,11 +483,11 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 		}
 
 		if ( in_array( 'confirmed', $fields, true ) ) {
-			$data['confirmed'] = $email['is_confirmed'];
+			$data['confirmed'] = (bool) $email['is_confirmed'];
 		}
 
 		if ( in_array( 'spam', $fields, true ) ) {
-			$data['spam'] = $email['is_spam'];
+			$data['spam'] = (bool) $email['is_spam'];
 		}
 
 		if ( in_array( 'confirmation_date', $fields, true ) ) {
@@ -427,7 +594,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 						'default'           => '',
 					),
 					'code'              => array(
-						'context'           => array( 'view', 'edit' ),
+						'context'           => array(), // Code is never displayed.
 						'description'       => __( 'Le code de validation génére pour la vérification de l’email.', 'reception' ),
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
