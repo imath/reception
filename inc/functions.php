@@ -134,8 +134,6 @@ function reception_init_blocks() {
 			),
 			'editor_script'      => 'reception-block-member-contact-form',
 			'editor_script_url'  => $js_base_url . 'member-contact-form.js',
-			'style'              => 'reception-block-member-contact-form',
-			'style_url'          => $css_base_url . 'block-member-contact-form.css',
 			'editor_script_deps' => array(
 				'wp-blocks',
 				'wp-element',
@@ -143,6 +141,11 @@ function reception_init_blocks() {
 				'wp-i18n',
 				'wp-editor',
 				'wp-block-editor',
+			),
+			'style'              => 'reception-block-member-contact-form',
+			'style_url'          => $css_base_url . 'block-member-contact-form.css',
+			'style_deps'         => array(
+				'wp-components',
 			),
 		)
 	);
@@ -168,35 +171,48 @@ add_action( 'bp_blocks_init', 'reception_init_blocks' );
  * @since 1.0.0
  */
 function reception_register_scripts() {
-	if ( ! bp_is_my_profile() ) {
-		return;
-	}
-
 	$js_base_url  = trailingslashit( reception()->url ) . 'js/scripts/';
 	$css_base_url = trailingslashit( reception()->url ) . 'assets/css/';
 	$version      = reception_get_version();
 
+	if ( bp_is_my_profile() ) {
+		wp_register_script(
+			'reception-script-member-bio',
+			$js_base_url . 'member-bio.js',
+			array(
+				'wp-element',
+				'wp-i18n',
+				'wp-api-fetch',
+				'wp-block-editor',
+				'wp-components',
+			),
+			$version,
+			true
+		);
+
+		wp_register_style(
+			'reception-script-member-bio',
+			$css_base_url . 'script-member-bio.css',
+			array(
+				'wp-components',
+			),
+			$version
+		);
+	}
+
 	wp_register_script(
-		'reception-script-member-bio',
-		$js_base_url . 'member-bio.js',
+		'reception-script-member-contact-form',
+		$js_base_url . 'member-contact-form.js',
 		array(
 			'wp-element',
 			'wp-i18n',
 			'wp-api-fetch',
 			'wp-block-editor',
 			'wp-components',
+			'wp-url',
 		),
 		$version,
 		true
-	);
-
-	wp_register_style(
-		'reception-script-member-bio',
-		$css_base_url . 'script-member-bio.css',
-		array(
-			'wp-components',
-		),
-		$version
 	);
 }
 add_action( 'bp_enqueue_scripts', 'reception_register_scripts', 1 );
@@ -299,6 +315,16 @@ function reception_render_member_contact_form( $attributes = array() ) {
 
 	if ( bp_is_user() ) {
 		$member_contact_form = '';
+
+		wp_enqueue_script( 'reception-script-member-contact-form' );
+		wp_localize_script(
+			'reception-script-member-contact-form',
+			'receptionMemberContactForm',
+			array(
+				'displayUserId'  => bp_displayed_user_id(),
+				'loggedInUserId' => bp_loggedin_user_id(),
+			)
+		);
 	} else {
 		$member_contact_form = sprintf(
 			'<label for="reception-email">%1$s</label><input type="email" name="reception-email" id="reception-email">%2$s
@@ -314,13 +340,13 @@ function reception_render_member_contact_form( $attributes = array() ) {
 	if ( $params['blockTitle'] ) {
 		$block_title         = str_replace( '{{member.name}}', bp_core_get_user_displayname( $user_id ), $params['blockTitle'] );
 		$member_contact_form = sprintf(
-			'<h3>%1$s</h3>%2$s<p class="reception-member-contact-form-content">%3$s</p>',
+			'<h3>%1$s</h3>%2$s<div class="reception-member-contact-form-content">%3$s</div>',
 			esc_html( $block_title ),
 			"\n",
 			$member_contact_form
 		);
 	} else {
-		$member_contact_form = '<p class="reception-member-contact-form-content">' . $member_contact_form . '</p>';
+		$member_contact_form = '<div class="reception-member-contact-form-content">' . $member_contact_form . '</div>';
 	}
 
 	return sprintf( $container, $member_contact_form );
