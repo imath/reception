@@ -154,6 +154,27 @@ function reception_admin_updater() {
 add_action( 'admin_init', 'reception_admin_updater', 1999 );
 
 /**
+ * Register the Block Editor customizations script.
+ *
+ * @since 1.0.0
+ */
+function reception_admin_register_scripts() {
+	wp_register_script(
+		'reception-editor',
+		trailingslashit( reception()->url ) . 'js/editor/index.js',
+		array(
+			'wp-plugins',
+			'wp-edit-post',
+			'wp-data',
+			'wp-i18n',
+		),
+		reception_get_version(),
+		true
+	);
+}
+add_action( 'init', 'reception_admin_register_scripts' );
+
+/**
  * Only allow the Réception blocks into the Réception post type.
  *
  * @since 1.0.0
@@ -294,6 +315,21 @@ function reception_admin_register_settings() {
 add_action( 'bp_register_admin_settings', 'reception_admin_register_settings', 11 );
 
 /**
+ * Redirects the current user on his home page if he tries to access the Reception Edit screen.
+ *
+ * @since 1.0.0
+ */
+function reception_admin_redirect_reception_edit_screen() {
+	$screen = get_current_screen();
+
+	if ( isset( $screen->post_type ) && 'reception' === $screen->post_type ) {
+		wp_safe_redirect( bp_loggedin_user_domain() );
+		exit();
+	}
+}
+add_action( 'load-edit.php', 'reception_admin_redirect_reception_edit_screen' );
+
+/**
  * Replace the Block Editor's WordPress logo with the current user's avatar.
  *
  * @since 1.0.0
@@ -323,10 +359,43 @@ function reception_add_block_editor_inline_css() {
 				background-position: center;
 			}
 
-			a.components-button.edit-post-fullscreen-mode-close svg {
+			a.components-button.edit-post-fullscreen-mode-close svg,
+			.edit-post-more-menu__content .components-menu-group:first-child {
 				display: none;
 			}'
+		);
+
+		wp_enqueue_script( 'reception-editor' );
+		wp_localize_script(
+			'reception-editor',
+			'receptionEditor',
+			array(
+				'buddyPressOptionsUrl' => esc_url_raw( add_query_arg( 'page', 'bp-settings', bp_get_admin_url( 'admin.php' ) ) ),
+			)
 		);
 	}
 }
 add_action( 'enqueue_block_editor_assets', 'reception_add_block_editor_inline_css' );
+
+/**
+ * Override the Block editor settings to disable code editor for the reception post type.
+ *
+ * @since 1.0.0
+ *
+ * @param array   $settings Default editor settings.
+ * @param WP_Post $post     Post being edited.
+ * @return array the editor settings.
+ */
+function reception_set_block_editor_settings( $settings = array(), $post ) {
+	if ( 'reception' === get_post_type( $post ) ) {
+		$settings = array_merge(
+			$settings,
+			array(
+				'codeEditingEnabled' => false,
+			)
+		);
+	}
+
+	return $settings;
+}
+add_filter( 'block_editor_settings', 'reception_set_block_editor_settings', 10, 2 );
