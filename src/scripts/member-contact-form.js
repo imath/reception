@@ -4,7 +4,7 @@
 const { Component, render, createElement, Fragment } = wp.element;
 const { __ } = wp.i18n;
 const { RichText } = wp.blockEditor;
-const { Button, TextControl, Modal } = wp.components;
+const { Button, TextControl, Modal, Snackbar } = wp.components;
 const { apiFetch } = wp;
 const { isEmail } = wp.url;
 
@@ -13,10 +13,12 @@ class MemberContactForm extends Component {
 		super( ...arguments );
 
 		this.state = {
+			name: '',
 			email: '',
 			message: '',
 			displayUserId: 0,
 			loggedInUserId: 0,
+			codeSent: '',
 			checked: false,
 			verifiedEmail: {},
 			isEditorOpen: false,
@@ -24,6 +26,7 @@ class MemberContactForm extends Component {
 		};
 
 		this.closeEmailEditor = this.closeEmailEditor.bind( this );
+		this.sendValidationCode = this.sendValidationCode.bind( this );
 		this.isSelfProfile = false;
 		this.isUserLoggedIn = false;
 	}
@@ -50,10 +53,18 @@ class MemberContactForm extends Component {
 	openEmailEditor( e ) {
 		e.preventDefault();
 
-		const { email, checked } = this.state;
+		const { name, email, checked } = this.state;
 		this.setState( { isEditorOpen: true } );
 
 		if ( ! this.isUserLoggedIn || this.isSelfProfile ) {
+			if ( ! name ) {
+				this.setState( { feedback: [
+					( <p key="missing-name" className="reception-error">{ __( 'Merci de renseigner un prénom et un nom.', 'reception' ) }</p> ),
+				] } );
+
+				return;
+			}
+
 			if ( ! isEmail( email ) ) {
 				this.setState( { feedback: [
 					( <p key="missing-email" className="reception-error">{ __( 'Merci de renseigner un email valide.', 'reception' ) }</p> ),
@@ -74,7 +85,19 @@ class MemberContactForm extends Component {
 					let updatedFeedback = [];
 
 					if ( updatedFeedback && ! updatedFeedback.id ) {
-						updatedFeedback = [ ( <p key="reception-unverified" className="reception-info">{ __( 'Votre e-mail n’a pas été vérifié, merci de procéder à cette vérification.', 'reception' ) }</p> ) ];
+						updatedFeedback = [ (
+							<Fragment key="reception-unverified">
+								<p className="reception-info">{ __( 'Votre e-mail a besoin d’être validé, cette étape de validation est nécessaire afin de garantir à nos membres qu’ils ne recevront pas de messages indésirables.', 'reception' ) }</p>
+								<p className="reception-help">{ __( 'Merci de cliquer sur le bouton « Obtenir le code de validation » afin de recevoir un e-mail le contenant dans les prochaines minutes.', 'reception' ) }</p>
+								<p className="reception-help">{ __( 'Dés que vous l’aurez reçu, vous pourrez revenir sur cette page afin de l’utiliser pour déverrouiller cette sécurité et contacter ce membre. Merci de votre commpréhension.', 'reception' ) }</p>
+								<Button
+									isPrimary={ true }
+									onClick={ ( e ) => this.sendValidationCode( e ) }
+								>
+									{ __( 'Obtenir le code de validation', 'reception' ) }
+								</Button>
+							</Fragment>
+						) ];
 					}
 
 					this.setState( {
@@ -95,6 +118,33 @@ class MemberContactForm extends Component {
 		} );
 	}
 
+	sendValidationCode( e ) {
+		e.preventDefault();
+
+		const { name, email, displayUserId } = this.state;
+
+		apiFetch( {
+			path: '/reception/v1/email',
+			method: 'POST',
+			data: {
+				name: name,
+				email: email,
+				member_id: displayUserId,
+			}
+		} ).then( ( verifiedEmail ) => {
+			this.setState( {
+				codeSent: __( 'L’e-mail contenant le code de validation vous a bien été transmis', 'reception' ),
+				verifiedEmail: verifiedEmail,
+			} );
+		}, () => {
+			this.setState( {
+				codeSent: __( 'Désolé, une erreur a empêché l’envoi de s’effectuer.', 'reception' ),
+			} );
+		} );
+
+		this.closeEmailEditor();
+	}
+
 	sendEmail( e ) {
 		e.preventDefault();
 
@@ -102,27 +152,42 @@ class MemberContactForm extends Component {
 	}
 
 	render() {
-		const { displayUserId, email, isEditorOpen, feedback, verifiedEmail } = this.state;
-		const labelEmailInput = displayUserId && this.isSelfProfile ? __( 'E-mail du destinataire', 'reception' ) : __( 'Votre e-mail', 'reception' );
+		const { displayUserId, name, email, isEditorOpen, feedback, codeSent, verifiedEmail } = this.state;
+		const labelEmailInput = displayUserId && this.isSelfProfile ? __( 'E-mail du destinataire (obligatoire)', 'reception' ) : __( 'Votre e-mail (obligatoire)', 'reception' );
+		const labelNameInput = displayUserId && this.isSelfProfile ? __( 'Prénom et nom du destinataire (obligatoire)', 'reception' ) : __( 'Vos prénom et nom (obligatoire)', 'reception' );
 		const labelCancelButton = 0 !== feedback.length ? __( 'Fermer', 'reception' ) : __( 'Annuler', 'reception' );
-		let emailInput;
-
-		console.log( verifiedEmail );
+		let emailInputs;
 
 		if ( ! this.isUserLoggedIn || this.isSelfProfile ) {
-			emailInput = (
-				<TextControl
-					label={ labelEmailInput }
-					type="email"
-					value={ email }
-					onChange={ ( email ) => this.setState( { email: email } ) }
-				/>
+			emailInputs = (
+				<Fragment>
+					<TextControl
+						label={ labelNameInput }
+						type="text"
+						value={ name }
+						onChange={ ( name ) => this.setState( { name: name } ) }
+						required={ true }
+					/>
+					<TextControl
+						label={ labelEmailInput }
+						type="email"
+						value={ email }
+						onChange={ ( email ) => this.setState( { email: email } ) }
+						required={ true }
+					/>
+
+					{ '' !== codeSent &&
+						<Snackbar onRemove={ () => this.setState( { codeSent: '' } ) }>
+							{ codeSent }
+						</Snackbar>
+					}
+				</Fragment>
 			);
 		}
 
 		return(
 			<Fragment>
-				{ emailInput }
+				{ emailInputs }
 				<Button
 					isPrimary={ true }
 					onClick={ ( e ) => this.openEmailEditor( e ) }
