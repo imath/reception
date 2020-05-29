@@ -70,6 +70,9 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 
 		$this->assertArrayHasKey( $this->endpoint_url . '/validate/(?P<email>[\S]+)', $routes );
 		$this->assertCount( 1, $routes[$this->endpoint_url . '/validate/(?P<email>[\S]+)'] );
+
+		$this->assertArrayHasKey( $this->endpoint_url . '/send/(?P<member_id>[\d]+)', $routes );
+		$this->assertCount( 1, $routes[$this->endpoint_url . '/send/(?P<member_id>[\d]+)'] );
 	}
 
 	/**
@@ -218,6 +221,28 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'reception_email_wrong_code_error', $response, 500 );
+	}
+
+	/**
+	 * @group rest_send_item
+	 */
+	public function test_send_item() {
+		$inserted = reception_insert_email_to_verify( 'foo@bar.com' );
+		$entry    = reception_get_email_verification_entry( $inserted['email_hash'] );
+		$verified = reception_validate_email_to_verify( $inserted['email'], $entry->confirmation_code );
+
+		$request  = new WP_REST_Request( 'POST', $this->endpoint_url . sprintf( '/send/%s', $this->member ) );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( array(
+			'email'   => 'foo@bar.com',
+			'name'    => 'Foo Bar',
+			'message' => 'Hello world',
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertTrue( $get_data['sent'] );
 	}
 
 	/**

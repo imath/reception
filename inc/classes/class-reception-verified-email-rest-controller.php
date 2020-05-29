@@ -140,6 +140,28 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
+
+		// Register the email's verified validate route.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/send/(?P<member_id>[\d]+)',
+			array(
+				'args'   => array(
+					'message' => array(
+						'description' => __( 'Le message à envoyer.', 'reception' ),
+						'type'        => 'string',
+						'required'    => true,
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'send_item' ),
+					'permission_callback' => array( $this, 'send_item_permissions_check' ),
+					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
+				),
+				'schema' => array( $this, 'get_item_schema' ),
+			)
+		);
 	}
 
 	/**
@@ -453,6 +475,172 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 		}
 
 		$response = $this->prepare_item_for_response( $validated, $request );
+
+		return rest_ensure_response( $response );
+	}
+
+	/**
+	 * Checks if the user can send an email to a member.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return bool|WP_Error
+	 */
+	public function send_item_permissions_check( $request ) {
+		$retval = true;
+
+		// Every visitor can send their email.
+		if ( ! current_user_can( 'exist' ) ) {
+			$retval = new WP_Error(
+				'reception_rest_authorization_required',
+				__( 'Désolé, vous n’êtes pas autorisé·e à envoyer un e-mail à ce membre.', 'reception' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		return $retval;
+	}
+
+	/**
+	 * Sends an email to the member or let a member reply to a visitor.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|WP_REST_Response Response object on success, WP_Error object on failure.
+	 */
+	public function send_item( $request ) {
+		$member_id = $request->get_param( 'member_id' );
+		$email     = $request->get_param( 'email' );
+		$name      = $request->get_param( 'name' );
+		$message   = $request->get_param( 'message' );
+
+		// Get the member the visitor wants to contact.
+		$member  = bp_rest_get_user( $member_id );
+		$is_self = (int) get_current_user_id() === (int) $member_id;
+
+		if ( ! $member ) {
+			// Return an error.
+			return new WP_Error(
+				'reception_create_verified_email_unknown_member',
+				__( 'Désolé, la personne que vous souhaitez contacter ne semble pas être un membre du site.', 'reception' ),
+				array(
+					'status' => 500,
+				)
+			);
+		}
+
+		// Hash the email.
+		$email_hash = wp_hash( $email );
+
+		// Get the member url and the verified visitor entry.
+		$member_url   = bp_core_get_userlink( $member->ID, false, true );
+		$email_entry  = reception_get_email_verification_entry( $email_hash );
+		$email_status = reception_get_email_verification_status( $email_entry );
+
+		if ( is_wp_error( $email_entry ) ) {
+			$verified->add_data(
+				array(
+					'status' => 500,
+				)
+			);
+
+			return $email_entry;
+		}
+
+		if ( 'confirmed' !== $email_status ) {
+			$error_message = __( 'Désolé, vous devez valider votre e-mail avant de pouvoir contacter un membre.', 'reception' );
+			if ( $is_self ) {
+				$error_message = __( 'Désolé, ce visiteur n’a pas validé son e-mail, il n’est pas possible d’utiliser le site pour le contacter.', 'reception' );
+			}
+
+			// Return an error.
+			return new WP_Error(
+				'reception_email_confirmed_error',
+				$error_message,
+				array(
+					'status' => 500,
+				)
+			);
+		}
+
+		$situation = 'reception-contact-member';
+		$tokens    = array(
+			'tokens' => array(
+				'reception.visitorname'  => esc_html( $name ),
+				'reception.visitoremail' => $email,
+				'reception.membername'   => esc_html( $member->display_name ),
+				'reception.content'      => wp_kses(
+					$message,
+					array(
+						'p' => true,
+						'a' => true,
+					)
+				),
+				'reception.memberurl'    => esc_url_raw( $member_url ),
+			),
+		);
+
+		if ( $is_self ) {
+			$situation = 'reception-reply-visitor';
+			$tokens    = array(
+				'tokens' => array(
+					'reception.membername' => esc_html( $member->display_name ),
+					'reception.content'    => wp_kses(
+						$message,
+						array(
+							'p' => true,
+							'a' => true,
+						)
+					),
+					'reception.memberurl'  => esc_url_raw( $member_url ),
+				),
+			);
+		}
+
+		$sent = bp_send_email( $situation, $email, $tokens );
+
+		if ( is_wp_error( $sent ) ) {
+			return new WP_Error(
+				'reception_send_email_failed',
+				__( 'Désolé, nous ne sommes pas parvenus à envoyer votre message au membre.', 'reception' ),
+				array(
+					'status' => 500,
+				)
+			);
+		}
+
+		// Update the last use date.
+		$email_entry->date_last_email_sent = reception_update_last_use_date_email_verification_entry( $email_entry->id );
+
+		$request->set_param( 'context', 'edit' );
+
+		$verified_email = $this->prepare_item_for_response(
+			wp_parse_args(
+				(array) $email_entry,
+				array(
+					'id'                   => 0,
+					'email_hash'           => '',
+					'confirmation_code'    => '',
+					'is_confirmed'         => false,
+					'is_spam'              => false,
+					'date_confirmed'       => '0000-00-00 00:00:00',
+					'date_last_email_sent' => '0000-00-00 00:00:00',
+				)
+			),
+			$request
+		);
+		$verified_email = rest_ensure_response( $verified_email );
+		$response       = new WP_REST_Response();
+		$response->set_data(
+			array(
+				'sent'          => true,
+				'verifiedEmail' => $verified_email->get_data(),
+			)
+		);
 
 		return rest_ensure_response( $response );
 	}

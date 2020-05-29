@@ -486,6 +486,40 @@ function reception_get_email_verification_entry( $email_hash = '' ) {
 }
 
 /**
+ * Updates the last use date verification entry.
+ *
+ * @since 1.0.0
+ *
+ * @param integer $id The unique identifier of the verification entry.
+ * @return WP_error|string An error if no rows were update.The last use date otherwise.
+ */
+function reception_update_last_use_date_email_verification_entry( $id = '' ) {
+	global $wpdb;
+
+	$last_use_date = current_time( 'mysql' );
+
+	// Update the last use date.
+	$updated = $wpdb->update( // phpcs:ignore
+		reception_get_email_verification_table_name(),
+		array(
+			'date_last_email_sent' => $last_use_date,
+		),
+		array( 'id' => (int) $id ),
+		'%s',
+		'%d'
+	);
+
+	if ( 1 !== $updated ) {
+		return new WP_Error(
+			'reception_email_last_use_date_error',
+			__( 'Désolé, une erreur est survenue lors de la mise à jour de la date d’utilisation de l’e-mail.', 'reception' )
+		);
+	}
+
+	return $last_use_date;
+}
+
+/**
  * Gets the status of the verification for a given email.
  *
  * @since 1.0.0

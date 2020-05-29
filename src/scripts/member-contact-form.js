@@ -185,7 +185,9 @@ class MemberContactForm extends Component {
 	sendEmail( e ) {
 		e.preventDefault();
 
-		console.log( 'send' );
+		const { name, email, message, displayUserId } = this.state;
+
+		console.log( message );
 	}
 
 	render() {
@@ -198,6 +200,7 @@ class MemberContactForm extends Component {
 			resultMessage,
 			confirmationCode,
 			needsValidation,
+			message,
 		} = this.state;
 		const labelEmailInput = displayUserId && this.isSelfProfile ? __( 'E-mail du destinataire (obligatoire)', 'reception' ) : __( 'Votre e-mail (obligatoire)', 'reception' );
 		const labelNameInput = displayUserId && this.isSelfProfile ? __( 'Prénom et nom du destinataire (obligatoire)', 'reception' ) : __( 'Vos prénom et nom (obligatoire)', 'reception' );
@@ -241,15 +244,25 @@ class MemberContactForm extends Component {
 					{ __( 'Rédiger votre message', 'reception' ) }
 				</Button>
 				{ isEditorOpen && (
-					<Modal title={ __( 'Envoyer un message', 'reception' ) } onRequestClose={ this.closeEmailEditor }>
+					<Modal title={ __( 'Envoyer un message', 'reception' ) } onRequestClose={ this.closeEmailEditor } className="reception-contact-form-modal">
 						{ feedback }
 						{ 0 === feedback.length && (
-							<Button
-								isPrimary={ true }
-								onClick={ ( e ) => this.sendEmail( e ) }
-							>
-								{ __( 'Envoyer', 'reception' ) }
-							</Button>
+							<Fragment>
+								<h2>{ __( 'Votre message', 'reception' ) }</h2>
+								<RichText
+									value={ message }
+									tagName="p"
+									onChange={ ( text ) => this.setState( { message: text } ) }
+									placeholder={ __( 'Utiliser cette zone pour rédiger votre message', 'reception' ) }
+									multiline={ true }
+								/>
+								<Button
+									isPrimary={ true }
+									onClick={ ( e ) => this.sendEmail( e ) }
+								>
+									{ __( 'Envoyer', 'reception' ) }
+								</Button>
+							</Fragment>
 						) }
 						{ true === needsValidation && (
 							<Fragment>
