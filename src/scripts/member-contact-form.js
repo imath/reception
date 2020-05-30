@@ -92,7 +92,7 @@ class MemberContactForm extends Component {
 							<Fragment key="reception-unverified">
 								<p className="reception-info">{ __( 'Votre e-mail a besoin d’être validé, cette étape de validation est nécessaire afin de garantir à nos membres qu’ils ne recevront pas de messages indésirables.', 'reception' ) }</p>
 								<p className="reception-help">{ __( 'Merci de cliquer sur le bouton « Obtenir le code de validation » afin de recevoir un e-mail le contenant dans les prochaines minutes.', 'reception' ) }</p>
-								<p className="reception-help">{ __( 'Dés que vous l’aurez reçu, vous pourrez revenir sur cette page afin de l’utiliser pour déverrouiller cette sécurité et contacter ce membre. Merci de votre commpréhension.', 'reception' ) }</p>
+								<p className="reception-help">{ __( 'Dés que vous l’aurez reçu, vous pourrez revenir sur cette page afin de l’utiliser pour déverrouiller cette sécurité et contacter ce membre. Merci de votre compréhension.', 'reception' ) }</p>
 								<Button
 									isPrimary={ true }
 									onClick={ ( e ) => this.sendValidationCode( e ) }
@@ -153,6 +153,8 @@ class MemberContactForm extends Component {
 			} );
 		} );
 
+		// Make sure the user can recheck without reloading the page.
+		this.setState( { checked: false } );
 		this.closeEmailEditor();
 	}
 
@@ -176,9 +178,12 @@ class MemberContactForm extends Component {
 		}, () => {
 			this.setState( {
 				resultMessage: __( 'Désolé, la validation de votre e-mail a échoué.', 'reception' ),
+				confirmationCode: '',
 			} );
 		} );
 
+		// Make sure the a check is performed if the code was wrong.
+		this.setState( { checked: false } );
 		this.closeEmailEditor();
 	}
 
