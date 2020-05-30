@@ -22,6 +22,7 @@ class MemberContactForm extends Component {
 			resultMessage: '',
 			needsValidation: false,
 			checked: false,
+			sending: false,
 			verifiedEmail: {},
 			isEditorOpen: false,
 			feedback: [],
@@ -190,9 +191,36 @@ class MemberContactForm extends Component {
 	sendEmail( e ) {
 		e.preventDefault();
 
-		const { name, email, message, displayUserId } = this.state;
+		const { name, email, message, displayUserId, sending } = this.state;
 
-		console.log( message );
+		if ( ! sending ) {
+			this.setState( { sending: true } );
+
+			apiFetch( {
+				path: '/reception/v1/email/send/' + displayUserId,
+				method: 'POST',
+				data: {
+					name: name,
+					email: email,
+					message: message,
+				}
+			} ).then( ( response ) => {
+				this.setState( {
+					resultMessage: __( 'Votre e-mail a bien été transmis au membre.', 'reception' ),
+					verifiedEmail: response.verifiedEmail,
+					message: '',
+					sending: false,
+				} );
+			}, () => {
+				this.setState( {
+					resultMessage: __( 'Désolé, l’envoi de votre e-mail au membre a échoué.', 'reception' ),
+					message: '',
+					sending: false,
+				} );
+			} );
+		}
+
+		this.closeEmailEditor();
 	}
 
 	render() {

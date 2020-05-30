@@ -601,7 +601,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$sent = bp_send_email( $situation, $email, $tokens );
+		$sent = bp_send_email( $situation, $member, $tokens );
 
 		if ( is_wp_error( $sent ) ) {
 			return new WP_Error(
