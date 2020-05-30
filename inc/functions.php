@@ -76,6 +76,25 @@ function reception_init() {
 
 	// Disable trash for the post type.
 	add_filter( 'rest_reception_trashable', '__return_false' );
+
+	// Add custom styles for the WP Admin Bar My Account entry.
+	wp_add_inline_style(
+		'admin-bar',
+		'#wpadminbar #wp-admin-bar-my-account-reception > .ab-item {
+			padding-left: 2em;
+			padding-right: 1em;
+		}
+
+		#wpadminbar #wp-admin-bar-my-account-reception .wp-admin-bar-arrow:before {
+			position: absolute;
+			top: 1px;
+			left: 6px;
+			right: 10px;
+			padding: 4px 0;
+			font: normal 17px/1 dashicons;
+			content: "\f102";
+		}'
+	);
 }
 add_action( 'bp_init', 'reception_init' );
 
@@ -407,6 +426,27 @@ function reception_has_front() {
 
 	return ! $disable && $default_page_id;
 }
+
+/**
+ * Adds a WP Admin Bar My Account menu to reach User's front page.
+ *
+ * @since 1.0.0
+ */
+function reception_add_my_account_bar_menu() {
+	if ( ! is_user_logged_in() || ! isset( $GLOBALS['wp_admin_bar'] ) || ! reception_has_front() ) {
+		return;
+	}
+
+	$GLOBALS['wp_admin_bar']->add_node(
+		array(
+			'parent' => buddypress()->my_account_menu_id,
+			'id'     => 'my-account-reception',
+			'title'  => sprintf( '<span class="wp-admin-bar-arrow"></span>%s', esc_html_x( 'Accueil', 'My Account Front page', 'reception' ) ),
+			'href'   => bp_core_get_userlink( bp_loggedin_user_id(), false, true ),
+		)
+	);
+}
+add_action( 'bp_setup_admin_bar', 'reception_add_my_account_bar_menu', 9 );
 
 /**
  * Get email templates
