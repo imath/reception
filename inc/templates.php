@@ -26,7 +26,7 @@ function reception_template_stack( $template_stack = array() ) {
 
 	return array_merge(
 		$template_stack,
-		array( trailingslashit( reception()->tpl_dir ) . 'buddypress' ),
+		array( trailingslashit( reception()->tpl_dir ) . 'buddypress' )
 	);
 }
 add_filter( 'bp_get_template_stack', 'reception_template_stack', 10, 1 );
@@ -38,6 +38,7 @@ add_filter( 'bp_get_template_stack', 'reception_template_stack', 10, 1 );
  */
 function reception_content() {
 	$reception_page_id = reception_get_member_front_id();
+	$is_wp_5_5         = function_exists( 'wp_filter_content_tags' );
 	$missing_template  = __( 'Le gabarit pour la page d’accueil personnalisée du membre est introuvable.', 'reception' );
 
 	if ( ! $reception_page_id ) {
@@ -86,7 +87,10 @@ function reception_content() {
 	add_filter( 'get_reception_content', 'convert_smilies', 20 );
 	add_filter( 'get_reception_content', 'shortcode_unautop' );
 	add_filter( 'get_reception_content', 'prepend_attachment' );
-	add_filter( 'get_reception_content', 'wp_filter_content_tags' );
+
+	if ( $is_wp_5_5 ) {
+		add_filter( 'get_reception_content', 'wp_filter_content_tags' );
+	}
 
 	/**
 	 * Filter here to add sanitization filters to the front page content.
@@ -98,12 +102,30 @@ function reception_content() {
 	 */
 	$reception_content = apply_filters( 'get_reception_content', $reception->post_content );
 
+	if ( ! trim( $reception_content, " \n\t" ) ) {
+		printf(
+			'<div class="reception-missing-blocks"><p>%s</p></div>',
+			sprintf(
+				/* translators: %s is the link to edit the Reception Blocks template */
+				esc_html__( 'Le gabarit ne contient aucun élément à afficher. %s.', 'reception' ),
+				sprintf(
+					'<a href="%1$s">%2$s</a>',
+					esc_url( reception_get_edit_template_link() ),
+					esc_html__( 'Merci de le mettre à jour', 'reception' )
+				)
+			)
+		);
+	}
+
 	remove_filter( 'get_reception_content', 'do_blocks', 9 );
 	remove_filter( 'get_reception_content', 'wptexturize' );
 	remove_filter( 'get_reception_content', 'convert_smilies', 20 );
 	remove_filter( 'get_reception_content', 'shortcode_unautop' );
 	remove_filter( 'get_reception_content', 'prepend_attachment' );
-	remove_filter( 'get_reception_content', 'wp_filter_content_tags' );
+
+	if ( $is_wp_5_5 ) {
+		remove_filter( 'get_reception_content', 'wp_filter_content_tags' );
+	}
 
 	/**
 	 * Filter here to edit the Member's front page content once sanitized.
