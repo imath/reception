@@ -498,15 +498,15 @@ function reception_get_email_templates() {
 				'description'  => _x( 'Un membre du site répond à un visiteur', 'BP Email message description', 'reception' ),
 				'term_id'      => 0,
 				'post_title'   => _x( '[{{{site.name}}}] {{reception.membername}} vous a répondu', 'BP Email message object', 'reception' ),
-				'post_content' => _x( "Voici cette réponse :\n\n{{{reception.content}}}\n\nPour contacter à nouveau {{reception.membername}}, vous pouvez utiliser son <a href=\"{{{reception.memberurl}}}\">formulaire de contact depuis notre site</a>.", 'BP Email message html content', 'reception' ),
-				'post_excerpt' => _x( "Voici cette réponse :\n\n{{reception.content}}\n\nPour contacter à nouveau {{reception.membername}}, vous pouvez utiliser son formulaire de contact depuis notre site :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
+				'post_content' => _x( "<a href=\"{{{reception.memberurl}}}\">{{reception.membername}}</a> vous a répondu. Voici cette réponse :\n\n{{{reception.content}}}\n\nPour contacter à nouveau {{reception.membername}}, vous pouvez utiliser son <a href=\"{{{reception.memberurl}}}\">formulaire de contact depuis notre site</a>.", 'BP Email message html content', 'reception' ),
+				'post_excerpt' => _x( "{{reception.membername}} vous a répondu. Voici cette réponse :\n\n{{reception.content}}\n\nPour contacter à nouveau {{reception.membername}}, vous pouvez utiliser son formulaire de contact depuis notre site :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
 			),
 			'reception-members-message' => array(
 				'description'  => _x( 'Un membre du site écrit à un autre', 'BP Email message description', 'reception' ),
 				'term_id'      => 0,
 				'post_title'   => _x( '[{{{site.name}}}] {{reception.membername}} vous a écrit', 'BP Email message object', 'reception' ),
-				'post_content' => _x( "Voici son message :\n\n{{{reception.content}}}\n\nPour répondre à {{reception.membername}}, vous pouvez utiliser son <a href=\"{{{reception.memberurl}}}\">formulaire de contact depuis notre site</a>.", 'BP Email message html content', 'reception' ),
-				'post_excerpt' => _x( "Voici son message :\n\n{{reception.content}}\n\nPour répondre à {{reception.membername}}, vous pouvez utiliser son formulaire de contact depuis notre site :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
+				'post_content' => _x( "<a href=\"{{{reception.memberurl}}}\">{{reception.membername}}</a> vous a contacté. Voici son message :\n\n{{{reception.content}}}\n\nPour répondre à {{reception.membername}}, vous pouvez utiliser son <a href=\"{{{reception.memberurl}}}\">formulaire de contact depuis notre site</a>.", 'BP Email message html content', 'reception' ),
+				'post_excerpt' => _x( "{{reception.membername}} Voici son message :\n\n{{reception.content}}\n\nPour répondre à {{reception.membername}}, vous pouvez utiliser son formulaire de contact depuis notre site :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
 			),
 		)
 	);

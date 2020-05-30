@@ -147,10 +147,15 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			'/' . $this->rest_base . '/send/(?P<member_id>[\d]+)',
 			array(
 				'args'   => array(
-					'message' => array(
+					'message'      => array(
 						'description' => __( 'Le message à envoyer.', 'reception' ),
 						'type'        => 'string',
 						'required'    => true,
+					),
+					'current_user' => array(
+						'description' => __( 'L’identifiant numérique unique de l’utilisateur connecté.', 'reception' ),
+						'type'        => 'integer',
+						'default'     => 0,
 					),
 				),
 				array(
@@ -513,10 +518,11 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, WP_Error object on failure.
 	 */
 	public function send_item( $request ) {
-		$member_id = $request->get_param( 'member_id' );
-		$email     = $request->get_param( 'email' );
-		$name      = $request->get_param( 'name' );
-		$message   = $request->get_param( 'message' );
+		$member_id       = $request->get_param( 'member_id' );
+		$current_user_id = $request->get_param( 'current_user' );
+		$email           = $request->get_param( 'email' );
+		$name            = $request->get_param( 'name' );
+		$message         = $request->get_param( 'message' );
 
 		// Get the member the visitor wants to contact.
 		$member  = bp_rest_get_user( $member_id );
@@ -533,56 +539,43 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Hash the email.
-		$email_hash = wp_hash( $email );
+		if ( ! $current_user_id || 0 === $current_user_id ) {
+			// Hash the email.
+			$email_hash = wp_hash( $email );
 
-		// Get the member url and the verified visitor entry.
-		$member_url   = bp_core_get_userlink( $member->ID, false, true );
-		$email_entry  = reception_get_email_verification_entry( $email_hash );
-		$email_status = reception_get_email_verification_status( $email_entry );
+			// Get the member url and the verified visitor entry.
+			$member_url   = bp_core_get_userlink( $member->ID, false, true );
+			$email_entry  = reception_get_email_verification_entry( $email_hash );
+			$email_status = reception_get_email_verification_status( $email_entry );
 
-		if ( is_wp_error( $email_entry ) ) {
-			$verified->add_data(
-				array(
-					'status' => 500,
-				)
-			);
+			if ( is_wp_error( $email_entry ) ) {
+				$verified->add_data(
+					array(
+						'status' => 500,
+					)
+				);
 
-			return $email_entry;
-		}
-
-		if ( 'confirmed' !== $email_status ) {
-			$error_message = __( 'Désolé, vous devez valider votre e-mail avant de pouvoir contacter un membre.', 'reception' );
-			if ( $is_self ) {
-				$error_message = __( 'Désolé, ce visiteur n’a pas validé son e-mail, il n’est pas possible d’utiliser le site pour le contacter.', 'reception' );
+				return $email_entry;
 			}
 
-			// Return an error.
-			return new WP_Error(
-				'reception_email_confirmed_error',
-				$error_message,
-				array(
-					'status' => 500,
-				)
-			);
-		}
+			if ( 'confirmed' !== $email_status ) {
+				$error_message = __( 'Désolé, vous devez valider votre e-mail avant de pouvoir contacter un membre.', 'reception' );
+				if ( $is_self ) {
+					$error_message = __( 'Désolé, ce visiteur n’a pas validé son e-mail, il n’est pas possible d’utiliser le site pour le contacter.', 'reception' );
+				}
 
-		$situation = 'reception-contact-member';
-		$tokens    = array(
-			'tokens' => array(
-				'reception.visitorname'  => esc_html( $name ),
-				'reception.visitoremail' => $email,
-				'reception.membername'   => esc_html( $member->display_name ),
-				'reception.content'      => wp_kses(
-					$message,
+				// Return an error.
+				return new WP_Error(
+					'reception_email_confirmed_error',
+					$error_message,
 					array(
-						'p' => true,
-						'a' => true,
+						'status' => 500,
 					)
-				),
-				'reception.memberurl'    => esc_url_raw( $member_url ),
-			),
-		);
+				);
+			}
+		} else {
+			$email_entry = array();
+		}
 
 		if ( $is_self ) {
 			$situation = 'reception-reply-visitor';
@@ -601,7 +594,43 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 
 			$sent = bp_send_email( $situation, $email, $tokens );
+
+		} elseif ( $current_user_id && 0 !== $current_user_id && ! $is_self ) {
+			$situation = 'reception-members-message';
+			$tokens    = array(
+				'tokens' => array(
+					'reception.membername' => esc_html( $name ),
+					'reception.content'    => wp_kses(
+						$message,
+						array(
+							'p' => true,
+							'a' => true,
+						)
+					),
+					'reception.memberurl'  => esc_url_raw( bp_core_get_userlink( $current_user_id, false, true ) ),
+				),
+			);
+
+			$sent = bp_send_email( $situation, $member, $tokens );
+
 		} else {
+			$situation = 'reception-contact-member';
+			$tokens    = array(
+				'tokens' => array(
+					'reception.visitorname'  => esc_html( $name ),
+					'reception.visitoremail' => $email,
+					'reception.membername'   => esc_html( $member->display_name ),
+					'reception.content'      => wp_kses(
+						$message,
+						array(
+							'p' => true,
+							'a' => true,
+						)
+					),
+					'reception.memberurl'    => esc_url_raw( $member_url ),
+				),
+			);
+
 			$sent = bp_send_email( $situation, $member, $tokens );
 		}
 
