@@ -9,3 +9,4 @@ Page d'accueil des membres BuddyPress personnalisable à l'aide de blocs WordPre
 - [ ] Ajouter des filtres pour permettre de gérer la notification de présence pour le télésoin via ce bloc de contact.
 - [x] Un lien pour pouvoir modifier le gabarit de la page d'accueil directement sur la page d'accueil des membres.
 - [x] Un nouveau WP Admin Menu pour accéder à sa page d'accueil.
+- [ ] Un nouveau élément de wp nav menu pour accéder à sa page d'accueil.
