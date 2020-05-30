@@ -599,14 +599,16 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 					'reception.memberurl'  => esc_url_raw( $member_url ),
 				),
 			);
-		}
 
-		$sent = bp_send_email( $situation, $member, $tokens );
+			$sent = bp_send_email( $situation, $email, $tokens );
+		} else {
+			$sent = bp_send_email( $situation, $member, $tokens );
+		}
 
 		if ( is_wp_error( $sent ) ) {
 			return new WP_Error(
 				'reception_send_email_failed',
-				__( 'Désolé, nous ne sommes pas parvenus à envoyer votre message au membre.', 'reception' ),
+				__( 'Désolé, nous ne sommes pas parvenus à envoyer le message.', 'reception' ),
 				array(
 					'status' => 500,
 				)

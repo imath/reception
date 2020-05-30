@@ -88,28 +88,36 @@ class MemberContactForm extends Component {
 				} ).then( ( verifiedEmail ) => {
 					let updatedFeedback = [];
 
-					if ( ! verifiedEmail.id ) {
+					if ( this.isSelfProfile && ( ! verifiedEmail.id || ! verifiedEmail.confirmed ) ) {
 						updatedFeedback = [ (
-							<Fragment key="reception-unverified">
-								<p className="reception-info">{ __( 'Votre e-mail a besoin d’être validé, cette étape de validation est nécessaire afin de garantir à nos membres qu’ils ne recevront pas de messages indésirables.', 'reception' ) }</p>
-								<p className="reception-help">{ __( 'Merci de cliquer sur le bouton « Obtenir le code de validation » afin de recevoir un e-mail le contenant dans les prochaines minutes.', 'reception' ) }</p>
-								<p className="reception-help">{ __( 'Dés que vous l’aurez reçu, vous pourrez revenir sur cette page afin de l’utiliser pour déverrouiller cette sécurité et contacter ce membre. Merci de votre compréhension.', 'reception' ) }</p>
-								<Button
-									isPrimary={ true }
-									onClick={ ( e ) => this.sendValidationCode( e ) }
-								>
-									{ __( 'Obtenir le code de validation', 'reception' ) }
-								</Button>
+							<Fragment key="reception-not-verified">
+								<p className="reception-error">{ __( 'L‘email du visisteur que vous souhaitez contacter n’a pas été vérifié, merci de lui demander de le faire ou de le contacter directement.', 'reception' ) }</p>
 							</Fragment>
 						) ];
-					} else if ( ! verifiedEmail.confirmed ) {
-						updatedFeedback = [ (
-							<Fragment key="reception-do-verify">
-								<p className="reception-info">{ __( 'Le code de validation associé à votre e-mail a besoin d’être vérifié, Merci de copier le code de validation que vous avez reçu dans le champ ci-dessous avant de lancer la vérification.', 'reception' ) }</p>
-							</Fragment>
-						) ];
+					} else {
+						if ( ! verifiedEmail.id ) {
+							updatedFeedback = [ (
+								<Fragment key="reception-unverified">
+									<p className="reception-info">{ __( 'Votre e-mail a besoin d’être validé, cette étape de validation est nécessaire afin de garantir à nos membres qu’ils ne recevront pas de messages indésirables.', 'reception' ) }</p>
+									<p className="reception-help">{ __( 'Merci de cliquer sur le bouton « Obtenir le code de validation » afin de recevoir un e-mail le contenant dans les prochaines minutes.', 'reception' ) }</p>
+									<p className="reception-help">{ __( 'Dés que vous l’aurez reçu, vous pourrez revenir sur cette page afin de l’utiliser pour déverrouiller cette sécurité et contacter ce membre. Merci de votre compréhension.', 'reception' ) }</p>
+									<Button
+										isPrimary={ true }
+										onClick={ ( e ) => this.sendValidationCode( e ) }
+									>
+										{ __( 'Obtenir le code de validation', 'reception' ) }
+									</Button>
+								</Fragment>
+							) ];
+						} else if ( ! verifiedEmail.confirmed ) {
+							updatedFeedback = [ (
+								<Fragment key="reception-do-verify">
+									<p className="reception-info">{ __( 'Le code de validation associé à votre e-mail a besoin d’être vérifié, Merci de copier le code de validation que vous avez reçu dans le champ ci-dessous avant de lancer la vérification.', 'reception' ) }</p>
+								</Fragment>
+							) ];
 
-						this.setState( { needsValidation: true } );
+							this.setState( { needsValidation: true } );
+						}
 					}
 
 					this.setState( {
@@ -127,6 +135,7 @@ class MemberContactForm extends Component {
 		this.setState( {
 			isEditorOpen: false,
 			feedback: [],
+			checked: false,
 		} );
 	}
 
@@ -154,8 +163,6 @@ class MemberContactForm extends Component {
 			} );
 		} );
 
-		// Make sure the user can recheck without reloading the page.
-		this.setState( { checked: false } );
 		this.closeEmailEditor();
 	}
 
@@ -183,8 +190,6 @@ class MemberContactForm extends Component {
 			} );
 		} );
 
-		// Make sure the a check is performed if the code was wrong.
-		this.setState( { checked: false } );
 		this.closeEmailEditor();
 	}
 
@@ -206,14 +211,14 @@ class MemberContactForm extends Component {
 				}
 			} ).then( ( response ) => {
 				this.setState( {
-					resultMessage: __( 'Votre e-mail a bien été transmis au membre.', 'reception' ),
+					resultMessage: __( 'Votre e-mail a bien été transmis.', 'reception' ),
 					verifiedEmail: response.verifiedEmail,
 					message: '',
 					sending: false,
 				} );
 			}, () => {
 				this.setState( {
-					resultMessage: __( 'Désolé, l’envoi de votre e-mail au membre a échoué.', 'reception' ),
+					resultMessage: __( 'Désolé, l’envoi de votre e-mail a échoué.', 'reception' ),
 					message: '',
 					sending: false,
 				} );
