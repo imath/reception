@@ -3,8 +3,9 @@
 Page d'accueil des membres BuddyPress personnalisable à l'aide de blocs WordPress.
 
 ## Liste des tâches
-- [] Un bloc pour permettre aux administrateurs de la communautés d'ajouter des consignes pour leurs membres.
-- [] Un bloc de contact par email.
-- [] Un bloc de notification de présence pour le télésoin.
+- [x] Un bloc pour permettre aux administrateurs de la communautés d'ajouter des consignes pour leurs membres.
+- [x] Un bloc de contact via email du membre par un visiteur.
+- [ ] Rendre possible l'utilisation du bloc ci-dessus pour 2 membres du site.
+- [ ] Ajouter des filtres pour permettre de gérer la notification de présence pour le télésoin via ce bloc de contact.
 - [x] Un lien pour pouvoir modifier le gabarit de la page d'accueil directement sur la page d'accueil des membres.
-- [] Un procédé pour inciter le membre à renseigner sa présentation.
+- [ ] Un nouveau WP Admin Menu pour accéder à sa page d'accueil.
