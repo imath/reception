@@ -48,6 +48,14 @@ class MemberContactForm extends Component {
 				loggedInUserId = parseInt( window.receptionMemberContactForm.loggedInUserId, 10 );
 				this.setState( { loggedInUserId: loggedInUserId } );
 			}
+
+			if ( window.receptionMemberContactForm.name ) {
+				this.setState( { name: window.receptionMemberContactForm.name } );
+			}
+
+			if ( window.receptionMemberContactForm.email ) {
+				this.setState( { email: window.receptionMemberContactForm.email } );
+			}
 		}
 
 		this.isUserLoggedIn = loggedInUserId && 0 !== loggedInUserId;
@@ -196,7 +204,27 @@ class MemberContactForm extends Component {
 	sendEmail( e ) {
 		e.preventDefault();
 
-		const { name, email, message, displayUserId, sending } = this.state;
+		const { name, email, message, displayUserId, loggedInUserId, sending } = this.state;
+		let emailData = {
+			name: name,
+			email: email,
+			message: message,
+		};
+
+		if ( loggedInUserId && ! this.isSelfProfile ) {
+			emailData.current_user = loggedInUserId;
+		}
+
+		if ( ! message ) {
+			this.setState( {
+				resultMessage: __( 'Merci d’ajouter du texte à votre e-mail.', 'reception' ),
+				message: '',
+				sending: false,
+			} );
+
+			this.closeEmailEditor();
+			return;
+		}
 
 		if ( ! sending ) {
 			this.setState( { sending: true } );
@@ -204,11 +232,7 @@ class MemberContactForm extends Component {
 			apiFetch( {
 				path: '/reception/v1/email/send/' + displayUserId,
 				method: 'POST',
-				data: {
-					name: name,
-					email: email,
-					message: message,
-				}
+				data: emailData,
 			} ).then( ( response ) => {
 				this.setState( {
 					resultMessage: __( 'Votre e-mail a bien été transmis.', 'reception' ),
@@ -262,12 +286,6 @@ class MemberContactForm extends Component {
 						onChange={ ( email ) => this.setState( { email: email } ) }
 						required={ true }
 					/>
-
-					{ '' !== resultMessage &&
-						<Snackbar onRemove={ () => this.setState( { resultMessage: '' } ) }>
-							{ resultMessage }
-						</Snackbar>
-					}
 				</Fragment>
 			);
 		}
@@ -281,6 +299,11 @@ class MemberContactForm extends Component {
 				>
 					{ __( 'Rédiger votre message', 'reception' ) }
 				</Button>
+				{ '' !== resultMessage &&
+					<Snackbar onRemove={ () => this.setState( { resultMessage: '' } ) }>
+						{ resultMessage }
+					</Snackbar>
+				}
 				{ isEditorOpen && (
 					<Modal title={ __( 'Envoyer un message', 'reception' ) } onRequestClose={ this.closeEmailEditor } className="reception-contact-form-modal">
 						{ feedback }

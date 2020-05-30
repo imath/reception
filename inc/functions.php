@@ -334,16 +334,37 @@ function reception_render_member_contact_form( $attributes = array() ) {
 
 	if ( bp_is_user() ) {
 		$member_contact_form = '';
+		$current_user_id     = (int) bp_loggedin_user_id();
+		$script_data         = array(
+			'displayUserId'  => bp_displayed_user_id(),
+			'loggedInUserId' => $current_user_id,
+			'name'           => '',
+			'email'          => '',
+		);
+
+		if ( $current_user_id && ! bp_is_my_profile() ) {
+			$script_data['name']  = bp_core_get_user_displayname( $current_user_id );
+			$script_data['email'] = bp_core_get_user_email( $current_user_id );
+		}
+
+		if ( bp_is_my_profile() ) {
+			/**
+			 * Filter here to edit the block's title about Member's replies to visitors.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param string $value The block title.
+			 */
+			$params['blockTitle'] = apply_filters( 'reception_member_contact_form_reply_title', __( 'Répondre à un visiteur', 'reception' ) );
+		}
 
 		wp_enqueue_script( 'reception-script-member-contact-form' );
 		wp_localize_script(
 			'reception-script-member-contact-form',
 			'receptionMemberContactForm',
-			array(
-				'displayUserId'  => bp_displayed_user_id(),
-				'loggedInUserId' => bp_loggedin_user_id(),
-			)
+			$script_data
 		);
+
 	} else {
 		$member_contact_form = sprintf(
 			'<label for="reception-email">%1$s</label><input type="email" name="reception-email" id="reception-email">%2$s
