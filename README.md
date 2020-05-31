@@ -10,3 +10,4 @@ Page d'accueil des membres BuddyPress personnalisable à l'aide de blocs WordPre
 - [x] Un lien pour pouvoir modifier le gabarit de la page d'accueil directement sur la page d'accueil des membres.
 - [x] Un nouveau WP Admin Menu pour accéder à sa page d'accueil.
 - [ ] Un nouveau élément de wp nav menu pour accéder à sa page d'accueil.
+- [ ] Une interface d'administration des e-mails vérifiés pour éventuellement les marqués en spams.
