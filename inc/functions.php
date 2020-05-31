@@ -470,6 +470,78 @@ function reception_add_my_account_bar_menu() {
 add_action( 'bp_setup_admin_bar', 'reception_add_my_account_bar_menu', 9 );
 
 /**
+ * Adds a Réception user nav item to BuddyPress user nav items for the customizer.
+ *
+ * @since 1.0.0
+ *
+ * @param array   $items  The array of menu items.
+ * @param string  $type   The requested type.
+ * @param string  $object The requested object name.
+ * @param integer $page   The page num being requested.
+ * @return array The paginated BuddyPress user nav items.
+ */
+function reception_add_customizer_bp_nav_menu( $items = array(), $type = '', $object = '', $page = 0 ) {
+	if ( 'bp_loggedin_nav' === $object && 0 === $page && reception_has_front() ) {
+		array_unshift(
+			$items,
+			array(
+				'id'         => 'bp-reception',
+				'title'      => html_entity_decode( _x( 'Accueil', 'My Account Front page', 'reception' ), ENT_QUOTES, get_bloginfo( 'charset' ) ),
+				'type'       => $type,
+				'url'        => esc_url_raw( bp_core_get_userlink( bp_loggedin_user_id(), false, true ) ),
+				'classes'    => 'bp-menu bp-home-nav',
+				'type_label' => _x( 'lien personnalisé', 'customizer menu type label', 'reception' ),
+				'object'     => $object,
+				'object_id'  => -1,
+			)
+		);
+	}
+
+	return $items;
+}
+add_filter( 'customize_nav_menu_available_items', 'reception_add_customizer_bp_nav_menu', 20, 4 );
+
+/**
+ * Adds Réception specific item to the BuddyPress wp_nav_menu items.
+ *
+ * @since 1.0.0
+ *
+ * @param WP_Post $menu_item The menu item.
+ * @return WP_Post The modified WP_Post object.
+ */
+function reception_setup_nav_menu_item( $menu_item ) {
+	if ( is_admin() || ! reception_has_front() ) {
+		return $menu_item;
+	}
+
+	// Prevent a notice error when using the customizer.
+	$menu_classes = $menu_item->classes;
+
+	if ( is_array( $menu_classes ) ) {
+		$menu_classes = implode( ' ', $menu_item->classes );
+	}
+
+	if ( is_user_logged_in() && in_array( 'bp-home-nav', $menu_item->classes, true ) ) {
+		$menu_item->url      = bp_loggedin_user_domain();
+		$menu_item->guid     = $menu_item->url;
+		$menu_item->_invalid = false;
+
+		$current = bp_get_requested_url();
+		if ( strpos( $current, $menu_item->url ) !== false ) {
+			if ( is_array( $menu_item->classes ) ) {
+				$menu_item->classes[] = 'current_page_item';
+				$menu_item->classes[] = 'current-menu-item';
+			} else {
+				$menu_item->classes = array( 'current_page_item', 'current-menu-item' );
+			}
+		}
+	}
+
+	return $menu_item;
+}
+add_filter( 'wp_setup_nav_menu_item', 'reception_setup_nav_menu_item', 20, 1 );
+
+/**
  * Get email templates
  *
  * @since 1.0.0
