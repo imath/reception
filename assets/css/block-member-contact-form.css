@@ -11,6 +11,20 @@
 	width: 98%;
 }
 
+.reception-block-member-contact select {
+	display: inline-block;
+	font-size: 14px;
+    line-height: 2;
+    color: #32373c;
+    border-color: #ccc;
+    box-shadow: none;
+    border-radius: 3px;
+    padding: 0 24px 0 8px;
+    min-height: 30px;
+    width: 98%;
+    vertical-align: middle;
+}
+
 .reception-block-member-contact .components-snackbar {
 	margin-top: 1.5rem;
 }

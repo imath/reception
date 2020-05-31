@@ -4,7 +4,7 @@
 const { Component, render, createElement, Fragment } = wp.element;
 const { __ } = wp.i18n;
 const { RichText } = wp.blockEditor;
-const { Button, TextControl, Modal, Snackbar } = wp.components;
+const { Button, TextControl, Modal, Snackbar, SelectControl } = wp.components;
 const { apiFetch } = wp;
 const { isEmail } = wp.url;
 
@@ -26,6 +26,11 @@ class MemberContactForm extends Component {
 			verifiedEmail: {},
 			isEditorOpen: false,
 			feedback: [],
+			situations: [],
+			situation: 'reception-contact-member',
+			needsContent: true,
+			modalTitle: __( 'Envoyer un message', 'reception' ),
+			modalAction: __( 'Envoyer', 'reception' ),
 		};
 
 		this.closeEmailEditor = this.closeEmailEditor.bind( this );
@@ -56,10 +61,42 @@ class MemberContactForm extends Component {
 			if ( window.receptionMemberContactForm.email ) {
 				this.setState( { email: window.receptionMemberContactForm.email } );
 			}
+
+			if ( window.receptionMemberContactForm.situations ) {
+				this.setState( { situations: JSON.parse( window.receptionMemberContactForm.situations ) } );
+			}
 		}
 
 		this.isUserLoggedIn = loggedInUserId && 0 !== loggedInUserId;
 		this.isSelfProfile  = this.isUserLoggedIn && displayUserId === loggedInUserId;
+	}
+
+	setSituation( situation ) {
+		const { situations, modalTitle, modalAction } = this.state;
+		let needsContent = true, customModalTitle = modalTitle, customModalAction = modalAction;
+
+		situations.forEach( ( availableSituation ) => {
+			if ( situation === availableSituation.value ) {
+				if( ! availableSituation.needs_content || false === availableSituation.needs_content ) {
+					needsContent = false;
+				}
+
+				if ( availableSituation.label ) {
+					customModalTitle = availableSituation.label;
+				}
+
+				if ( !! availableSituation.action ) {
+					customModalAction = availableSituation.action;
+				}
+			}
+		} );
+
+		this.setState( {
+			situation: situation,
+			needsContent: needsContent,
+			modalTitle: customModalTitle,
+			modalAction: customModalAction,
+		} );
 	}
 
 	openEmailEditor( e ) {
@@ -204,7 +241,7 @@ class MemberContactForm extends Component {
 	sendEmail( e ) {
 		e.preventDefault();
 
-		const { name, email, message, displayUserId, loggedInUserId, sending } = this.state;
+		const { name, email, message, displayUserId, loggedInUserId, situation, needsContent, sending } = this.state;
 		let emailData = {
 			name: name,
 			email: email,
@@ -215,7 +252,15 @@ class MemberContactForm extends Component {
 			emailData.current_user = loggedInUserId;
 		}
 
-		if ( ! message ) {
+		if ( 'reception-contact-member' !== situation ) {
+			emailData.situation = situation;
+
+			if ( ! needsContent ) {
+				emailData.message = situation;
+			}
+		}
+
+		if ( ! emailData.message ) {
 			this.setState( {
 				resultMessage: __( 'Merci d’ajouter du texte à votre e-mail.', 'reception' ),
 				message: '',
@@ -255,6 +300,7 @@ class MemberContactForm extends Component {
 	render() {
 		const {
 			displayUserId,
+			loggedInUserId,
 			name,
 			email,
 			isEditorOpen,
@@ -263,6 +309,11 @@ class MemberContactForm extends Component {
 			confirmationCode,
 			needsValidation,
 			message,
+			situations,
+			situation,
+			needsContent,
+			modalTitle,
+			modalAction,
 		} = this.state;
 		const labelEmailInput = displayUserId && this.isSelfProfile ? __( 'E-mail du destinataire (obligatoire)', 'reception' ) : __( 'Votre e-mail (obligatoire)', 'reception' );
 		const labelNameInput = displayUserId && this.isSelfProfile ? __( 'Prénom et nom du destinataire (obligatoire)', 'reception' ) : __( 'Vos prénom et nom (obligatoire)', 'reception' );
@@ -286,6 +337,14 @@ class MemberContactForm extends Component {
 						onChange={ ( email ) => this.setState( { email: email } ) }
 						required={ true }
 					/>
+					{ 0 !== situations.length && 0 === loggedInUserId && (
+						<SelectControl
+							label={ __( 'Motif de votre contact', 'reception' ) }
+							value={ situation }
+							options={ situations }
+							onChange={ ( situation ) => this.setSituation( situation ) }
+						/>
+					) }
 				</Fragment>
 			);
 		}
@@ -305,23 +364,27 @@ class MemberContactForm extends Component {
 					</Snackbar>
 				}
 				{ isEditorOpen && (
-					<Modal title={ __( 'Envoyer un message', 'reception' ) } onRequestClose={ this.closeEmailEditor } className="reception-contact-form-modal">
+					<Modal title={ modalTitle } onRequestClose={ this.closeEmailEditor } className="reception-contact-form-modal">
 						{ feedback }
 						{ 0 === feedback.length && (
 							<Fragment>
-								<h2>{ __( 'Votre message', 'reception' ) }</h2>
-								<RichText
-									value={ message }
-									tagName="p"
-									onChange={ ( text ) => this.setState( { message: text } ) }
-									placeholder={ __( 'Utilisez cette zone pour rédiger votre message', 'reception' ) }
-									multiline={ true }
-								/>
+								{ true === needsContent && (
+									<Fragment>
+										<h2>{ __( 'Votre message', 'reception' ) }</h2>
+										<RichText
+											value={ message }
+											tagName="p"
+											onChange={ ( text ) => this.setState( { message: text } ) }
+											placeholder={ __( 'Utilisez cette zone pour rédiger votre message', 'reception' ) }
+											multiline={ true }
+										/>
+									</Fragment>
+								) }
 								<Button
 									isPrimary={ true }
 									onClick={ ( e ) => this.sendEmail( e ) }
 								>
-									{ __( 'Envoyer', 'reception' ) }
+									{ modalAction }
 								</Button>
 							</Fragment>
 						) }

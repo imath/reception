@@ -332,6 +332,28 @@ function reception_render_member_contact_form( $attributes = array() ) {
 		return '';
 	}
 
+	/**
+	 * Filters to add custom situations when a visitor contacts a site member.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $value The list of associative arrays describing situations
+	 */
+	$situation_options = apply_filters( 'reception_member_contact_form_situation_options', array() );
+
+	if ( $situation_options ) {
+		$situation_options = array_merge(
+			array(
+				array(
+					'label'         => __( 'Envoyer un message', 'reception' ),
+					'value'         => 'reception-contact-member',
+					'needs_content' => true,
+				),
+			),
+			$situation_options
+		);
+	}
+
 	if ( bp_is_user() ) {
 		$member_contact_form = '';
 		$current_user_id     = (int) bp_loggedin_user_id();
@@ -345,6 +367,10 @@ function reception_render_member_contact_form( $attributes = array() ) {
 		if ( $current_user_id && ! bp_is_my_profile() ) {
 			$script_data['name']  = bp_core_get_user_displayname( $current_user_id );
 			$script_data['email'] = bp_core_get_user_email( $current_user_id );
+		}
+
+		if ( $situation_options ) {
+			$script_data['situations'] = wp_json_encode( $situation_options );
 		}
 
 		if ( bp_is_my_profile() ) {
@@ -366,14 +392,35 @@ function reception_render_member_contact_form( $attributes = array() ) {
 		);
 
 	} else {
+		$situation_dropdown = '';
+		if ( $situation_options ) {
+			$options = '';
+			foreach ( $situation_options as $option ) {
+				$options .= sprintf(
+					'<option value="%1$s">%2$s</option>',
+					$option['value'],
+					$option['label']
+				);
+			}
+
+			$situation_dropdown = sprintf(
+				'<label for="reception-situation">%1$s</label><select id="reception-situation" name="reception-situation" style="display: block; width:%2$s!important; max-width:%2$s!important;">%3$s</select>%4$s',
+				esc_html__( 'Motif de votre contact', 'reception' ),
+				'98%',
+				$options,
+				"\n"
+			);
+		}
+
 		$member_contact_form = sprintf(
 			'<label for="reception-email">%1$s</label><input type="email" name="reception-email" id="reception-email">%2$s
-			<label for="reception-name">%3$s</label><input type="text" name="reception-name" id="reception-name">%2$s
-			<label for="reception-message">%4$s</label><textarea name="reception-message" id="reception-message"></textarea>',
-			esc_html__( 'Votre e-mail', 'reception' ),
+			<label for="reception-name">%3$s</label><input type="text" name="reception-name" id="reception-name">%2$s%4$s
+			<button type="button" class="button primary" style="display: block; margin-top: 1.5em">%5$s</button>',
+			esc_html__( 'Votre e-mail (obligatoire)', 'reception' ),
 			"\n",
-			esc_html__( 'Votre nom', 'reception' ),
-			esc_html__( 'Votre message', 'reception' )
+			esc_html__( 'Votre nom (obligatoire)', 'reception' ),
+			$situation_dropdown,
+			esc_html__( 'Rédiger votre message', 'reception' )
 		);
 	}
 

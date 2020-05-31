@@ -157,6 +157,11 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 						'type'        => 'integer',
 						'default'     => 0,
 					),
+					'situation'    => array(
+						'description' => __( 'L’identifiant unique de la situation de l’e-mail.', 'reception' ),
+						'type'        => 'string',
+						'default'     => 'reception-contact-member',
+					),
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
@@ -605,12 +610,13 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, WP_Error object on failure.
 	 */
 	public function send_item( $request ) {
-		$member_id         = $request->get_param( 'member_id' );
-		$current_user_id   = $request->get_param( 'current_user' );
-		$email             = $request->get_param( 'email' );
-		$name              = $request->get_param( 'name' );
-		$message           = $request->get_param( 'message' );
-		$update_last_email = false;
+		$member_id           = $request->get_param( 'member_id' );
+		$current_user_id     = $request->get_param( 'current_user' );
+		$email               = $request->get_param( 'email' );
+		$name                = $request->get_param( 'name' );
+		$message             = $request->get_param( 'message' );
+		$requested_situation = $request->get_param( 'situation' );
+		$update_last_email   = false;
 
 		// Get the member the visitor wants to contact.
 		$member  = bp_rest_get_user( $member_id );
@@ -744,15 +750,10 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			$sent = bp_send_email( $situation, $member, $tokens );
 
 		} else {
-			/**
-			 * Filters to edit the situation for a visitor contacting a site member.
-			 *
-			 * @since 1.0.0
-			 *
-			 * @param string $value The situation.
-			 * @param WP_REST_Request $request Full details about the request.
-			 */
-			$situation = apply_filters( 'reception_visitor_contact_member_verified_email_situation', 'reception-contact-member', $request );
+			$situation = 'reception-contact-member';
+			if ( $requested_situation ) {
+				$situation = sanitize_key( $requested_situation );
+			}
 
 			/**
 			 * Filters to edit the tokens for a visitor contacting a site member.
@@ -760,6 +761,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			 * @since 1.0.0
 			 *
 			 * @param array $value The tokens.
+			 * @param string $situation The email situation.
 			 * @param WP_REST_Request $request Full details about the request.
 			 */
 			$tokens = apply_filters(
@@ -779,6 +781,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 						'reception.memberurl'    => esc_url_raw( $member_url ),
 					),
 				),
+				$situation,
 				$request
 			);
 
