@@ -191,7 +191,15 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $retval;
+		/**
+		 * Filter the verified email `get_items` permissions check.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param bool|WP_Error   $retval  Returned value.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		return apply_filters( 'reception_get_verified_emails_rest_permissions_check', $retval, $request );
 	}
 
 	/**
@@ -203,6 +211,53 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response List of verified emails response data.
 	 */
 	public function get_items( $request ) {
+		$response = rest_ensure_response( array() );
+
+		return $response;
+	}
+
+	/**
+	 * Checks if a given request has access to a verified email.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return bool|WP_Error
+	 */
+	public function get_item_permissions_check( $request ) {
+		$retval = true;
+
+		// Capability check.
+		if ( ! current_user_can( 'edit_users' ) ) {
+			$retval = new WP_Error(
+				'reception_rest_authorization_required',
+				__( 'Désolé, vous n’êtes pas autorisé·e à lister les emails vérfiés.', 'reception' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		/**
+		 * Filter the verified email `get_item` permissions check.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param bool|WP_Error   $retval  Returned value.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		return apply_filters( 'reception_get_verified_email_rest_permissions_check', $retval, $request );
+	}
+
+	/**
+	 * Retrieves a verified email.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response List of verified emails response data.
+	 */
+	public function get_item( $request ) {
 		$response = rest_ensure_response( array() );
 
 		return $response;
@@ -230,7 +285,15 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $retval;
+		/**
+		 * Filter the verified email `create_item` permissions check.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param bool|WP_Error   $retval  Returned value.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		return apply_filters( 'reception_create_verified_email_rest_permissions_check', $retval, $request );
 	}
 
 	/**
@@ -392,7 +455,15 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $retval;
+		/**
+		 * Filter the verified email `check_item` permissions check.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param bool|WP_Error   $retval  Returned value.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		return apply_filters( 'reception_check_verified_email_rest_permissions_check', $retval, $request );
 	}
 
 	/**
@@ -451,7 +522,15 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $retval;
+		/**
+		 * Filter the verified email `validate_item` permissions check.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param bool|WP_Error   $retval  Returned value.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		return apply_filters( 'reception_validate_verified_email_rest_permissions_check', $retval, $request );
 	}
 
 	/**
@@ -506,7 +585,15 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $retval;
+		/**
+		 * Filter the verified email `send_item` permissions check.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param bool|WP_Error   $retval  Returned value.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		return apply_filters( 'reception_send_verified_email_rest_permissions_check', $retval, $request );
 	}
 
 	/**
@@ -518,11 +605,12 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, WP_Error object on failure.
 	 */
 	public function send_item( $request ) {
-		$member_id       = $request->get_param( 'member_id' );
-		$current_user_id = $request->get_param( 'current_user' );
-		$email           = $request->get_param( 'email' );
-		$name            = $request->get_param( 'name' );
-		$message         = $request->get_param( 'message' );
+		$member_id         = $request->get_param( 'member_id' );
+		$current_user_id   = $request->get_param( 'current_user' );
+		$email             = $request->get_param( 'email' );
+		$name              = $request->get_param( 'name' );
+		$message           = $request->get_param( 'message' );
+		$update_last_email = false;
 
 		// Get the member the visitor wants to contact.
 		$member  = bp_rest_get_user( $member_id );
@@ -578,60 +666,125 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 		}
 
 		if ( $is_self ) {
-			$situation = 'reception-reply-visitor';
-			$tokens    = array(
-				'tokens' => array(
-					'reception.membername' => esc_html( $member->display_name ),
-					'reception.content'    => wp_kses(
-						$message,
-						array(
-							'p' => true,
-							'a' => true,
-						)
+			/**
+			 * Filters to edit the situation for a member replying to a visitor.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param string $value The situation.
+			 * @param WP_REST_Request $request Full details about the request.
+			 */
+			$situation = apply_filters( 'reception_member_reply_verified_email_situation', 'reception-reply-visitor', $request );
+
+			/**
+			 * Filters to edit the tokens for a member replying to a visitor.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param array $value The tokens.
+			 * @param WP_REST_Request $request Full details about the request.
+			 */
+			$tokens = apply_filters(
+				'reception_member_reply_verified_email_tokens',
+				array(
+					'tokens' => array(
+						'reception.membername' => esc_html( $member->display_name ),
+						'reception.content'    => wp_kses(
+							$message,
+							array(
+								'p' => true,
+								'a' => true,
+							)
+						),
+						'reception.memberurl'  => esc_url_raw( $member_url ),
 					),
-					'reception.memberurl'  => esc_url_raw( $member_url ),
 				),
+				$request
 			);
 
 			$sent = bp_send_email( $situation, $email, $tokens );
 
 		} elseif ( $current_user_id && 0 !== $current_user_id && ! $is_self ) {
-			$situation = 'reception-members-message';
-			$tokens    = array(
-				'tokens' => array(
-					'reception.membername' => esc_html( $name ),
-					'reception.content'    => wp_kses(
-						$message,
-						array(
-							'p' => true,
-							'a' => true,
-						)
+			/**
+			 * Filters to edit the situation for 2 site members sending message to each others.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param string $value The situation.
+			 * @param WP_REST_Request $request Full details about the request.
+			 */
+			$situation = apply_filters( 'reception_members_message_verified_email_situation', 'reception-members-message', $request );
+
+			/**
+			 * Filters to edit the tokens for 2 site members sending message to each others.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param array $value The tokens.
+			 * @param WP_REST_Request $request Full details about the request.
+			 */
+			$tokens = apply_filters(
+				'reception_members_message_verified_email_tokens',
+				array(
+					'tokens' => array(
+						'reception.membername' => esc_html( $name ),
+						'reception.content'    => wp_kses(
+							$message,
+							array(
+								'p' => true,
+								'a' => true,
+							)
+						),
+						'reception.memberurl'  => esc_url_raw( bp_core_get_userlink( $current_user_id, false, true ) ),
 					),
-					'reception.memberurl'  => esc_url_raw( bp_core_get_userlink( $current_user_id, false, true ) ),
 				),
+				$request
 			);
 
 			$sent = bp_send_email( $situation, $member, $tokens );
 
 		} else {
-			$situation = 'reception-contact-member';
-			$tokens    = array(
-				'tokens' => array(
-					'reception.visitorname'  => esc_html( $name ),
-					'reception.visitoremail' => $email,
-					'reception.membername'   => esc_html( $member->display_name ),
-					'reception.content'      => wp_kses(
-						$message,
-						array(
-							'p' => true,
-							'a' => true,
-						)
+			/**
+			 * Filters to edit the situation for a visitor contacting a site member.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param string $value The situation.
+			 * @param WP_REST_Request $request Full details about the request.
+			 */
+			$situation = apply_filters( 'reception_visitor_contact_member_verified_email_situation', 'reception-contact-member', $request );
+
+			/**
+			 * Filters to edit the tokens for a visitor contacting a site member.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param array $value The tokens.
+			 * @param WP_REST_Request $request Full details about the request.
+			 */
+			$tokens = apply_filters(
+				'reception_visitor_contact_member_verified_email_tokens',
+				array(
+					'tokens' => array(
+						'reception.visitorname'  => esc_html( $name ),
+						'reception.visitoremail' => $email,
+						'reception.membername'   => esc_html( $member->display_name ),
+						'reception.content'      => wp_kses(
+							$message,
+							array(
+								'p' => true,
+								'a' => true,
+							)
+						),
+						'reception.memberurl'    => esc_url_raw( $member_url ),
 					),
-					'reception.memberurl'    => esc_url_raw( $member_url ),
 				),
+				$request
 			);
 
 			$sent = bp_send_email( $situation, $member, $tokens );
+
+			$update_last_email = true;
 		}
 
 		if ( is_wp_error( $sent ) ) {
@@ -645,7 +798,9 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 		}
 
 		// Update the last use date.
-		$email_entry->date_last_email_sent = reception_update_last_use_date_email_verification_entry( $email_entry->id );
+		if ( $update_last_email ) {
+			$email_entry->date_last_email_sent = reception_update_last_use_date_email_verification_entry( $email_entry->id );
+		}
 
 		$request->set_param( 'context', 'edit' );
 
@@ -722,7 +877,17 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$data = $this->filter_response_by_context( $data, $context );
 
-		return rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
+
+		/**
+		 * Filter the verified email `check_item` permissions check.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param WP_REST_Response $response The preprared verified email for response.
+		 * @param WP_REST_Response $request The request sent to the API.
+		 */
+		return apply_filters( 'reception_prepare_verified_email_for_response', $response, $request );
 	}
 
 	/**
@@ -759,7 +924,15 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $args;
+		/**
+		 * Filters the endpoint specific arguments for item schema.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array $args The endpoint specific arguments for item schema.
+		 * @param string $method HTTP method of the request.
+		 */
+		return apply_filters( 'reception_rest_endpoint_args_for_verified_email_schema', $args, $method );
 	}
 
 	/**
@@ -780,7 +953,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 		 *
 		 * @param array $params Query params.
 		 */
-		return apply_filters( 'reception_rest_collection_params', $params );
+		return apply_filters( 'reception_rest_verified_emails_params', $params );
 	}
 
 	/**
@@ -857,6 +1030,15 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $this->add_additional_fields_schema( $this->schema );
+		$shema = $this->add_additional_fields_schema( $this->schema );
+
+		/**
+		 * Filters the verified email's schema.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array $shema the verified email's schema.
+		 */
+		return apply_filters( 'reception_rest_verified_email_schema', $shema );
 	}
 }
