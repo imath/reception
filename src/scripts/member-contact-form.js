@@ -314,7 +314,7 @@ class MemberContactForm extends Component {
 									value={ message }
 									tagName="p"
 									onChange={ ( text ) => this.setState( { message: text } ) }
-									placeholder={ __( 'Utiliser cette zone pour rédiger votre message', 'reception' ) }
+									placeholder={ __( 'Utilisez cette zone pour rédiger votre message', 'reception' ) }
 									multiline={ true }
 								/>
 								<Button

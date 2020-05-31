@@ -79,7 +79,7 @@ class MemberBio extends Component {
 				<RichText
 					value={ description }
 					onChange={ ( text ) => this.setState( { description: text } ) }
-					placeholder={ __( 'Utiliser cette zone pour personnaliser votre présentation', 'reception' ) }
+					placeholder={ __( 'Utilisez cette zone pour personnaliser votre présentation', 'reception' ) }
 					multiline={ true }
 				/>
 
