@@ -643,6 +643,26 @@ function reception_get_email_verification_table_name() {
 }
 
 /**
+ * Validate an email entry.
+ *
+ * @since 1.0.0
+ *
+ * @param object $entry The email verification entry.
+ * @return object The email verification entry
+ */
+function reception_set_email_verification_entry( $entry ) {
+	if ( ! isset( $entry->id ) || ! isset( $entry->is_confirmed ) || ! isset( $entry->is_spam ) ) {
+		return false;
+	}
+
+	$entry->id           = (int) $entry->id;
+	$entry->is_confirmed = (bool) $entry->is_confirmed;
+	$entry->is_spam      = (bool) $entry->is_spam;
+
+	return $entry;
+}
+
+/**
  * Gets the verification entry for a given email.
  *
  * @since 1.0.0
@@ -663,6 +683,120 @@ function reception_get_email_verification_entry( $email_hash = '' ) {
 	$table = reception_get_email_verification_table_name();
 
 	return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE email_hash = %s", $email_hash ) ); // phpcs:ignore
+}
+
+/**
+ * Gets the verification entries according to specified arguments.
+ *
+ * @since 1.0.0
+ *
+ * @param array $args {
+ *     The arguments used to query verification entries.
+ *     @type array {
+ *         @type integer        $per_page  Optional. The number of entries per page. Default: 20.
+ *         @type integer        $page      Optional. The results page to get. Default: 1.
+ *         @type string         $orderby   Optional. The way to sort results. Default: 'date_confirmed'.
+ *                                         Accepts 'date_confirmed', 'id' or 'date_last_email_sent'.
+ *         @type string         $order     Optional. The Descending or Ascending order. Default 'DESC'.
+ *                                         Accepts 'DESC' or 'ASC'.
+ *         @type string|boolean $confirmed Optional. Whether to get any, confirmed, or unconfirmed entries. Default 'any'.
+ *                                         Accepts 'any', 'true' or 'false'.
+ *         @type string|boolean $spammed   Optional. Whether to get any, spammed, or unspammed entries. Default 'any'.
+ *                                         Accepts 'any', 'true' or 'false'.
+ *         @type string         $email     Optional. the email to get information about.
+ *     }
+ * }
+ * @return array The found verification entries.
+ */
+function reception_get_email_verification_entries( $args = array() ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'per_page'  => 20,
+			'page'      => 1,
+			'orderby'   => 'date_confirmed',
+			'order'     => 'DESC',
+			'confirmed' => 'any',
+			'spammed'   => 'any',
+			'email'     => '',
+		)
+	);
+
+	$page = 1;
+	if ( is_numeric( $args['page'] ) && 0 !== $args['page'] ) {
+		$page = absint( $page );
+	}
+
+	$per_page = 20;
+	if ( is_numeric( $args['per_page'] ) && 0 !== $args['per_page'] ) {
+		$per_page = absint( $args['per_page'] );
+	}
+
+	// Sets the limits.
+	$limits = sprintf(
+		'LIMIT %1$s, %2$s',
+		absint( ( $page - 1 ) * $per_page ),
+		$per_page
+	);
+
+	$orderby = 'date_confirmed';
+	if ( 'date_confirmed' !== $args['orderby'] && in_array( $args['orderby'], array( 'id', 'date_last_email_sent' ), true ) ) {
+		$orderby = $args['orderby'];
+	}
+
+	$order = 'DESC';
+	if ( 'ASC' === strtoupper( $args['order'] ) ) {
+		$order = 'ASC';
+	}
+
+	// Sets the sort order.
+	$sort = sprintf(
+		'ORDER BY %1$s %2$s',
+		$orderby,
+		$order
+	);
+
+	global $wpdb;
+	$table = reception_get_email_verification_table_name();
+
+	// Builds the WHERE clauses.
+	$where = array();
+
+	if ( 'any' !== $args['confirmed'] ) {
+		$confirmed          = (bool) $args['confirmed'];
+		$where['confirmed'] = $wpdb->prepare( 'is_confirmed = %d', $confirmed );
+	}
+
+	if ( 'any' !== $args['spammed'] ) {
+		$spammed          = (bool) $args['spammed'];
+		$where['spammed'] = $wpdb->prepare( 'is_spam = %d', $spammed );
+	}
+
+	if ( '' !== $args['email'] ) {
+		$email = is_email( $args['email'] );
+
+		if ( $email ) {
+			$email_hash          = wp_hash( $email );
+			$where['email_hash'] = $wpdb->prepare( 'email_hash = %s', $email_hash );
+		}
+	}
+
+	$sql_where = '';
+	if ( $where ) {
+		$sql_where = 'WHERE ' . implode( ' AND ', $where );
+	}
+
+	$found_entries = 0;
+	$entries       = $wpdb->get_results( "SELECT * FROM {$table} {$sql_where} {$sort} {$limits}" ); // phpcs:ignore
+
+	if ( ! is_null( $entries ) && count( $entries ) > 0 ) {
+		$found_entries = (int) $wpdb->get_var( "SELECT count( * ) as found_entries FROM {$table} {$sql_where}" ); // phpcs:ignore
+	}
+
+	return array(
+		'entries'       => array_map( 'reception_set_email_verification_entry', $entries ),
+		'found_entries' => $found_entries,
+	);
 }
 
 /**
@@ -870,4 +1004,39 @@ function reception_validate_email_to_verify( $email = '', $code = '' ) {
 	}
 
 	return array_merge( (array) $email_entry, $update_params );
+}
+
+/**
+ * Updates the spam status of an email verification entry.
+ *
+ * @since 1.0.0
+ *
+ * @param integer $id     The unique numerique identifier of the entry.
+ * @param string  $status The spam status to apply.
+ * @return boolean True on successful update. False otherwise.
+ */
+function reception_update_spam_status( $id = 0, $status = 'spam' ) {
+	$stati = array(
+		'spam'   => 1,
+		'unspam' => 0,
+	);
+
+	if ( ! $id || ! isset( $stati[ $status ] ) ) {
+		return false;
+	}
+
+	global $wpdb;
+
+	// Update the spam status.
+	$updated = $wpdb->update( // phpcs:ignore
+		reception_get_email_verification_table_name(),
+		array( 'is_spam' => $stati[ $status ] ),
+		array( 'id' => $id )
+	);
+
+	if ( 1 !== $updated ) {
+		return false;
+	}
+
+	return true;
 }
