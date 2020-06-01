@@ -216,8 +216,40 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response List of verified emails response data.
 	 */
 	public function get_items( $request ) {
-		$response = rest_ensure_response( array() );
+		// Retrieve the list of registered collection query parameters.
+		$registered    = $this->get_collection_params();
+		$prepared_args = array();
 
+		foreach ( $registered as $param_key => $param_property ) {
+			$requested = $request->get_param( $param_key );
+
+			if ( is_null( $requested ) ) {
+				$requested = $param_property['default'];
+			}
+
+			if ( 'order' === $param_key ) {
+				$requested = strtoupper( $requested );
+			}
+
+			if ( in_array( $param_key, array( 'confirmed', 'spammed' ), true ) && 'any' !== $requested ) {
+				$requested = rest_sanitize_boolean( $requested );
+			}
+
+			$prepared_args[ $param_key ] = $requested;
+		}
+
+		$results = reception_get_email_verification_entries( $prepared_args );
+		$entries = array();
+
+		foreach ( $results['entries'] as $entry ) {
+			$data      = $this->prepare_item_for_response( (array) $entry, $request );
+			$entries[] = $this->prepare_response_for_collection( $data );
+		}
+
+		$response = rest_ensure_response( $entries );
+		$response = bp_rest_response_add_total_headers( $response, $results['found_entries'], $prepared_args['per_page'] );
+
+		// Return the response.
 		return $response;
 	}
 
@@ -984,7 +1016,6 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			'description' => __( 'E-mail à rechercher dans le jeu de résultats.', 'reception' ),
 			'default'     => '',
 			'type'        => 'string',
-			'format'      => 'email',
 		);
 
 		/**

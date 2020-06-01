@@ -62,8 +62,8 @@ class Reception_Functions_UnitTestCase extends BP_UnitTestCase {
 		$i2 = reception_insert_email_to_verify( 'spammed@test.com' );
 		reception_update_spam_status( $i2['id'], 'spam' );
 
-		$i3       = reception_insert_email_to_verify( 'confirmed@test.com' );
-		$entry    = reception_get_email_verification_entry( $i3['email_hash'] );
+		$i3    = reception_insert_email_to_verify( 'confirmed@test.com' );
+		$entry = reception_get_email_verification_entry( $i3['email_hash'] );
 		reception_validate_email_to_verify( $i3['email'], $entry->confirmation_code );
 
 		$all = reception_get_email_verification_entries();

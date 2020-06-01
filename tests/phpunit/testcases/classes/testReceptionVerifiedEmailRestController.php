@@ -52,6 +52,8 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 
 	public function tearDown() {
 		parent::tearDown();
+
+		wp_set_current_user( $this->current_user );
 	}
 
 	/**
@@ -82,11 +84,116 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 		$this->markTestSkipped();
 	}
 
+	public function set_get_items_dataset() {
+		$i1 = reception_insert_email_to_verify( 'unconfirmed@test.com' );
+
+		$i2 = reception_insert_email_to_verify( 'spammed@test.com' );
+		reception_update_spam_status( $i2['id'], 'spam' );
+
+		$i3    = reception_insert_email_to_verify( 'confirmed@test.com' );
+		$entry = reception_get_email_verification_entry( $i3['email_hash'] );
+		reception_validate_email_to_verify( $i3['email'], $entry->confirmation_code );
+	}
+
 	/**
 	 * @group rest_get_items
 	 */
 	public function test_get_items() {
-		$this->markTestSkipped();
+		$this->set_get_items_dataset();
+
+		wp_set_current_user( $this->admin_user );
+
+		$request = new WP_REST_Request( 'GET', $this->endpoint_url );
+		$response = $this->server->dispatch( $request );
+
+		$get_data = $response->get_data();
+
+		$this->assertTrue( 3 === count( $get_data ) );
+
+		$get_headers = $response->get_headers();
+
+		$this->assertSame( array( 'X-WP-Total' => 3, 'X-WP-TotalPages' => 1 ), $get_headers );
+	}
+
+	/**
+	 * @group rest_get_items
+	 */
+	public function test_get_items_not_authorized() {
+		$request = new WP_REST_Request( 'GET', $this->endpoint_url );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'reception_rest_authorization_required', $response, rest_authorization_required_code() );
+	}
+
+	/**
+	 * @group rest_get_items
+	 */
+	public function test_get_items_confirmed() {
+		$this->set_get_items_dataset();
+
+		wp_set_current_user( $this->admin_user );
+
+		$request = new WP_REST_Request( 'GET', $this->endpoint_url );
+		$request->set_param( 'confirmed', 'true' );
+		$request->set_param( 'spammed', 'false' );
+		$response = $this->server->dispatch( $request );
+
+		$get_data   = $response->get_data();
+		$email_hash = wp_list_pluck( $get_data, 'email' );
+		$email_hash = reset( $email_hash );
+
+		$this->assertTrue( hash_equals( $email_hash, wp_hash( 'confirmed@test.com' ) ) );
+
+		$get_headers = $response->get_headers();
+
+		$this->assertSame( array( 'X-WP-Total' => 1, 'X-WP-TotalPages' => 1 ), $get_headers );
+	}
+
+	/**
+	 * @group rest_get_items
+	 */
+	public function test_get_items_unconfirmed() {
+		$this->set_get_items_dataset();
+
+		wp_set_current_user( $this->admin_user );
+
+		$request = new WP_REST_Request( 'GET', $this->endpoint_url );
+		$request->set_param( 'confirmed', 'false' );
+		$request->set_param( 'spammed', 'false' );
+		$response = $this->server->dispatch( $request );
+
+		$get_data   = $response->get_data();
+		$email_hash = wp_list_pluck( $get_data, 'email' );
+		$email_hash = reset( $email_hash );
+
+		$this->assertTrue( hash_equals( $email_hash, wp_hash( 'unconfirmed@test.com' ) ) );
+
+		$get_headers = $response->get_headers();
+
+		$this->assertSame( array( 'X-WP-Total' => 1, 'X-WP-TotalPages' => 1 ), $get_headers );
+	}
+
+	/**
+	 * @group rest_get_items
+	 */
+	public function test_get_items_spammed() {
+		$this->set_get_items_dataset();
+
+		wp_set_current_user( $this->admin_user );
+
+		$request = new WP_REST_Request( 'GET', $this->endpoint_url );
+		$request->set_param( 'spammed', 'true' );
+		$response = $this->server->dispatch( $request );
+
+		$get_data   = $response->get_data();
+		$email_hash = wp_list_pluck( $get_data, 'email' );
+		$email_hash = reset( $email_hash );
+
+		$this->assertTrue( hash_equals( $email_hash, wp_hash( 'spammed@test.com' ) ) );
+
+		$get_headers = $response->get_headers();
+
+		$this->assertSame( array( 'X-WP-Total' => 1, 'X-WP-TotalPages' => 1 ), $get_headers );
 	}
 
 	/**
