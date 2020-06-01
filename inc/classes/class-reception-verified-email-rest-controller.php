@@ -946,8 +946,46 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		$params                       = parent::get_collection_params();
-		$params['context']['default'] = 'view';
+		$params                        = parent::get_collection_params();
+		$params['context']['default']  = 'edit';
+		$params['per_page']['default'] = 20;
+
+		unset( $params['search'] );
+
+		$params['orderby'] = array(
+			'default'     => 'date_confirmed',
+			'description' => __( 'Ordre de récupération des entrées.', 'reception' ),
+			'enum'        => array( 'date_confirmed', 'date_last_email_sent', 'id' ),
+			'type'        => 'string',
+		);
+
+		$params['order'] = array(
+			'description' => __( 'Attribut de l’ordre de récupération des entrées : ascendant ou descendant.', 'reception' ),
+			'default'     => 'desc',
+			'type'        => 'string',
+			'enum'        => array( 'asc', 'desc' ),
+		);
+
+		$params['confirmed'] = array(
+			'description' => __( 'Attribut de filtrage des résultats selon que l’e-mail a été vérifié ou non.', 'reception' ),
+			'default'     => 'any',
+			'type'        => 'string',
+			'enum'        => array( 'any', 'true', 'false' ),
+		);
+
+		$params['spammed'] = array(
+			'description' => __( 'Attribut de filtrage des résultats selon que l’e-mail ait été marqué comme spam ou non.', 'reception' ),
+			'default'     => 'any',
+			'type'        => 'string',
+			'enum'        => array( 'any', 'true', 'false' ),
+		);
+
+		$params['email'] = array(
+			'description' => __( 'E-mail à rechercher dans le jeu de résultats.', 'reception' ),
+			'default'     => '',
+			'type'        => 'string',
+			'format'      => 'email',
+		);
 
 		/**
 		 * Filters the collection query params.
