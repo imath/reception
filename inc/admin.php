@@ -171,6 +171,8 @@ function reception_admin_register_scripts() {
 		reception_get_version(),
 		true
 	);
+
+	add_action( bp_core_admin_hook(), 'reception_admin_menus' );
 }
 add_action( 'init', 'reception_admin_register_scripts' );
 
@@ -399,3 +401,65 @@ function reception_set_block_editor_settings( $settings = array(), $post ) {
 	return $settings;
 }
 add_filter( 'block_editor_settings', 'reception_set_block_editor_settings', 10, 2 );
+
+/**
+ * Adds a Tools submenu for the Verified Emails Admin screen.
+ *
+ * @since 1.0.0
+ */
+function reception_admin_menus() {
+	$parent_menu = 'tools.php';
+	if ( is_multisite() && bp_core_do_network_admin() ) {
+		$parent_menu = 'network-tools';
+	}
+
+	add_submenu_page(
+		$parent_menu,
+		__( 'Gestion des e-mails vérifiés', 'reception' ),
+		__( 'E-mails vérifiés', 'reception' ),
+		'edit_users',
+		'reception',
+		'reception_admin_verified_emails'
+	);
+}
+
+/**
+ * Display the Verified Emails Admin screen.
+ *
+ * @since 1.0.0
+ */
+function reception_admin_verified_emails() {
+	printf( '<div class="wrap"><h1>%s</h1></div>', esc_html__( 'Gestion des e-mails vérifiés', 'reception' ) );
+}
+
+/**
+ * Display a tool card for the Verified Emails Admin screen.
+ *
+ * @since 1.0.0
+ */
+function reception_admin_tool_box() {
+	if ( ! current_user_can( 'edit_users' ) ) {
+		return;
+	}
+
+	$admin_url = add_query_arg( 'page', 'reception', bp_get_admin_url( 'tools.php' ) );
+	?>
+	<div class="card">
+			<h2 class="title"><?php esc_html_e( 'Gestion des e-mails vérifiés', 'reception' ); ?></h2>
+			<p>
+			<?php
+				printf(
+					/* translators: %s: link to the Verified Emails Management screen. */
+					esc_html__( 'Pour modérer l’autorisation accordée aux visiteurs de contacter les membres de votre site, utilisez %s', 'reception' ),
+					sprintf(
+						'<a href="%1$s">%2$s</a>',
+						esc_url( $admin_url ),
+						esc_html__( 'l’interface de gestion des e-mails vérifiés', 'reception' )
+					)
+				);
+			?>
+			</p>
+		</div>
+	<?php
+}
+add_action( 'tool_box', 'reception_admin_tool_box', 8 );
