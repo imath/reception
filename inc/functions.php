@@ -564,11 +564,11 @@ function reception_setup_nav_menu_item( $menu_item ) {
 	// Prevent a notice error when using the customizer.
 	$menu_classes = $menu_item->classes;
 
-	if ( is_array( $menu_classes ) ) {
-		$menu_classes = implode( ' ', $menu_item->classes );
+	if ( ! is_array( $menu_classes ) ) {
+		$menu_classes = explode( ' ', $menu_item->classes );
 	}
 
-	if ( is_user_logged_in() && in_array( 'bp-home-nav', $menu_item->classes, true ) ) {
+	if ( is_user_logged_in() && in_array( 'bp-home-nav', $menu_classes, true ) ) {
 		$menu_item->url      = bp_loggedin_user_domain();
 		$menu_item->guid     = $menu_item->url;
 		$menu_item->_invalid = false;
