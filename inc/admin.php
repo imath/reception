@@ -159,16 +159,30 @@ add_action( 'admin_init', 'reception_admin_updater', 1999 );
  * @since 1.0.0
  */
 function reception_admin_register_scripts() {
+	$version = reception_get_version();
+	$url     = reception()->url;
+
 	wp_register_script(
 		'reception-editor',
-		trailingslashit( reception()->url ) . 'js/editor/index.js',
+		trailingslashit( $url ) . 'js/editor/index.js',
 		array(
 			'wp-plugins',
 			'wp-edit-post',
 			'wp-data',
 			'wp-i18n',
 		),
-		reception_get_version(),
+		$version,
+		true
+	);
+
+	wp_register_script(
+		'reception-admin-verified-emails',
+		trailingslashit( $url ) . 'js/admin/verified-emails.js',
+		array(
+			'wp-element',
+			'wp-i18n',
+		),
+		$version,
 		true
 	);
 
@@ -429,7 +443,13 @@ function reception_admin_menus() {
  * @since 1.0.0
  */
 function reception_admin_verified_emails() {
-	printf( '<div class="wrap"><h1>%s</h1></div>', esc_html__( 'Gestion des e-mails vérifiés', 'reception' ) );
+	wp_enqueue_style( 'wp-components' );
+	wp_enqueue_script( 'reception-admin-verified-emails' );
+
+	printf(
+		'<div class="wrap"><h1>%s</h1><div id="reception-verified-emails-list-table"></div>',
+		esc_html__( 'Gestion des e-mails vérifiés', 'reception' )
+	);
 }
 
 /**
