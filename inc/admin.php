@@ -180,7 +180,11 @@ function reception_admin_register_scripts() {
 		trailingslashit( $url ) . 'js/admin/verified-emails.js',
 		array(
 			'wp-element',
+			'wp-components',
+			'wp-api-fetch',
 			'wp-i18n',
+			'wp-date',
+			'wp-url',
 		),
 		$version,
 		true
@@ -447,8 +451,10 @@ function reception_admin_verified_emails() {
 	wp_enqueue_script( 'reception-admin-verified-emails' );
 
 	printf(
-		'<div class="wrap"><h1>%s</h1><div id="reception-verified-emails-list-table"></div>',
-		esc_html__( 'Gestion des e-mails vérifiés', 'reception' )
+		'<div class="wrap"><h1>%1$s</h1><p class="description">%2$s %3$s</p><div id="reception-verified-emails"></div>',
+		esc_html__( 'Gestion des e-mails vérifiés', 'reception' ),
+		esc_html__( 'Pour plus de sécurité, les adresses de messagerie des visiteurs sont cryptées.', 'reception' ),
+		esc_html__( 'Merci d’utiliser le champ de recherche ci-dessous en spécificant l’adresse e-mail dont vous souhaitez obtenir les informations de vérification.', 'reception' )
 	);
 }
 
