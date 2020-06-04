@@ -1072,3 +1072,32 @@ function reception_update_spam_status( $id = 0, $status = 'spam' ) {
 
 	return true;
 }
+
+/**
+ * Deletes an email verification entry.
+ *
+ * @since 1.0.0
+ *
+ * @param integer $id The unique numerique identifier of the entry.
+ * @return boolean True on successful deletion. False otherwise.
+ */
+function reception_delete_email_verification_entry( $id = 0 ) {
+	if ( ! $id ) {
+		return false;
+	}
+
+	global $wpdb;
+
+	// Delete the entry.
+	$deleted = $wpdb->delete( // phpcs:ignore
+		reception_get_email_verification_table_name(),
+		array( 'id' => $id ),
+		array( '%d' )
+	);
+
+	if ( 1 !== $deleted ) {
+		return false;
+	}
+
+	return true;
+}

@@ -200,7 +200,16 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 	 * @group rest_get_item
 	 */
 	public function test_get_item() {
-		$this->markTestSkipped();
+		$g = reception_insert_email_to_verify( 'visitor@get.com' );
+		$entry = reception_get_email_verification_entry_by_id( $g['id'] );
+
+		wp_set_current_user( $this->admin_user );
+
+		$request = new WP_REST_Request( 'GET', sprintf( $this->endpoint_url . '/%d', $g['id'] ) );
+		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertTrue( hash_equals( $get_data['email'], $entry->email_hash ) );
 	}
 
 	/**
@@ -291,7 +300,34 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 	 * @group rest_delete_item
 	 */
 	public function test_delete_item() {
-		$this->markTestSkipped();
+		$d = reception_insert_email_to_verify( 'visitor@deleted.com' );
+		wp_set_current_user( $this->admin_user );
+
+		$request = new WP_REST_Request( 'DELETE', sprintf( $this->endpoint_url . '/%d', $d['id'] ) );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertTrue( $get_data['deleted'] );
+		$this->assertEquals( $d['id'], $get_data['previous']['id'] );
+
+		$entry = reception_get_email_verification_entry_by_id( $d['id'] );
+
+		$this->assertTrue( is_wp_error( $entry ) );
+	}
+
+	/**
+	 * @group rest_delete_item
+	 */
+	public function test_delete_item_unauthorized() {
+		$d = reception_insert_email_to_verify( 'visitor@deleted.com' );
+		wp_set_current_user( $this->member );
+
+		$request = new WP_REST_Request( 'DELETE', sprintf( $this->endpoint_url . '/%d', $d['id'] ) );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'reception_rest_authorization_required', $response, rest_authorization_required_code() );
 	}
 
 	/**

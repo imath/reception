@@ -69,9 +69,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_item' ),
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
-					'args'                => array(
-						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
-					),
+					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::READABLE ),
 				),
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
@@ -83,6 +81,7 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'delete_item' ),
 					'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::DELETABLE ),
 				),
 				'schema' => array( $this, 'get_item_schema' ),
 			)
@@ -295,7 +294,23 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response List of verified emails response data.
 	 */
 	public function get_item( $request ) {
-		$response = rest_ensure_response( array() );
+		$id    = $request->get_param( 'id' );
+		$entry = reception_get_email_verification_entry_by_id( $id );
+
+		if ( is_wp_error( $entry ) ) {
+			$entry->add_data(
+				array(
+					'status' => 500,
+				)
+			);
+
+			return $entry;
+		}
+
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->prepare_item_for_response( (array) $entry, $request );
+		$response = rest_ensure_response( $response );
 
 		return $response;
 	}
@@ -542,14 +557,45 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
-		// Return an error.
-		return new WP_Error(
-			'reception_delete_verified_email_failed',
-			__( 'Désolé, l’e-mail n’a pu être supprimé des emails vérifiés.', 'reception' ),
+		$id    = $request->get_param( 'id' );
+		$entry = reception_get_email_verification_entry_by_id( $id );
+
+		if ( is_wp_error( $entry ) ) {
+			$entry->add_data(
+				array(
+					'status' => 500,
+				)
+			);
+
+			return $entry;
+		}
+
+		// Return an error on failure.
+		if ( ! reception_delete_email_verification_entry( $entry->id ) ) {
+			return new WP_Error(
+				'reception_delete_verified_email_failed',
+				__( 'Désolé, l’e-mail n’a pu être supprimé des emails vérifiés.', 'reception' ),
+				array(
+					'status' => 500,
+				)
+			);
+		}
+
+		$request->set_param( 'context', 'edit' );
+
+		$verified_email = $this->prepare_item_for_response( (array) $entry, $request );
+		$verified_email = rest_ensure_response( $verified_email );
+
+		// Set the response.
+		$response = new WP_REST_Response();
+		$response->set_data(
 			array(
-				'status' => 500,
+				'deleted'  => true,
+				'previous' => $verified_email->get_data(),
 			)
 		);
+
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -1052,6 +1098,10 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 				'context'           => array( 'edit' ),
 				'required'          => true,
 			);
+		} elseif ( WP_REST_Server::DELETABLE === $method || WP_REST_Server::READABLE === $method ) {
+			$args['context']['default'] = 'edit';
+			$args['id']['required']     = true;
+			unset( $args['email'] );
 		}
 
 		/**

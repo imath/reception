@@ -120,4 +120,18 @@ class Reception_Functions_UnitTestCase extends BP_UnitTestCase {
 
 		$this->assertSame( $existant->id, $i1['id'] );
 	}
+
+	/**
+	 * @group delete_entry
+	 */
+	public function test_reception_delete_email_verification_entry() {
+		$d = reception_insert_email_to_verify( 'deleted@test.com' );
+		$deleted = reception_delete_email_verification_entry( $d['id'] );
+
+		$this->assertTrue( $deleted );
+
+		$check = reception_get_email_verification_entry_by_id( $d['id'] );
+
+		$this->assertTrue( is_wp_error( $check ) );
+	}
 }
