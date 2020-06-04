@@ -668,7 +668,7 @@ function reception_set_email_verification_entry( $entry ) {
  * @since 1.0.0
  *
  * @param string $email_hash The hash of the email.
- * @return WP_Error|string An error if no email was given.
+ * @return WP_Error|object An error if no email was given.
  *                         The verification entry otherwise.
  */
 function reception_get_email_verification_entry( $email_hash = '' ) {
@@ -683,6 +683,38 @@ function reception_get_email_verification_entry( $email_hash = '' ) {
 	$table = reception_get_email_verification_table_name();
 
 	return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE email_hash = %s", $email_hash ) ); // phpcs:ignore
+}
+
+/**
+ * Gets the verification entry for a given entry id.
+ *
+ * @since 1.0.0
+ *
+ * @param integer $id The entry unique numeric identifier.
+ * @return WP_Error|object An error if no id was given.
+ *                         The verification entry otherwise.
+ */
+function reception_get_email_verification_entry_by_id( $id = 0 ) {
+	if ( ! $id ) {
+		return new WP_Error(
+			'reception_id_empty_error',
+			__( 'Désolé, l’identifiant est manquant.', 'reception' )
+		);
+	}
+
+	global $wpdb;
+	$table = reception_get_email_verification_table_name();
+
+	$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ) ); // phpcs:ignore
+
+	if ( ! $row ) {
+		return new WP_Error(
+			'reception_row_empty_error',
+			__( 'Désolé, il n’existe pas d’email vérifié pour cet identifiant.', 'reception' )
+		);
+	}
+
+	return reception_set_email_verification_entry( $row );
 }
 
 /**

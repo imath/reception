@@ -101,4 +101,23 @@ class Reception_Functions_UnitTestCase extends BP_UnitTestCase {
 		$this->assertTrue( 1 === $search_email['found_entries'] );
 		$this->assertTrue( in_array( $i3['id'], wp_list_pluck( $search_email['entries'], 'id' ), true ) );
 	}
+
+	/**
+	 * @group get_entry
+	 */
+	public function test_reception_get_email_verification_entry_by_id_inexistant() {
+		$inexistant = reception_get_email_verification_entry_by_id( 143 );
+
+		$this->assertTrue( is_wp_error( $inexistant ) );
+	}
+
+	/**
+	 * @group get_entry
+	 */
+	public function test_reception_get_email_verification_entry_by_id() {
+		$i1 = reception_insert_email_to_verify( 'unconfirmed@test.com' );
+		$existant = reception_get_email_verification_entry_by_id( $i1['id'] );
+
+		$this->assertSame( $existant->id, $i1['id'] );
+	}
 }

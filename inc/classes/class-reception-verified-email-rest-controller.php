@@ -419,6 +419,88 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks if a given request has access to update a verified email.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
+	 */
+	public function update_item_permissions_check( $request ) {
+		$retval = true;
+
+		// Capability check.
+		if ( ! current_user_can( 'edit_users' ) ) {
+			$retval = new WP_Error(
+				'reception_rest_authorization_required',
+				__( 'Désolé, vous n’êtes pas autorisé·e à modifier les emails vérfiés.', 'reception' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
+		/**
+		 * Filter the verified email `update_item` permissions check.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param bool|WP_Error   $retval  Returned value.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		return apply_filters( 'reception_update_verified_email_rest_permissions_check', $retval, $request );
+	}
+
+	/**
+	 * Updates a single verified email entry.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function update_item( $request ) {
+		$id   = $request->get_param( 'id' );
+		$spam = $request->get_param( 'spam' );
+
+		$entry = reception_get_email_verification_entry_by_id( $id );
+
+		if ( is_wp_error( $entry ) ) {
+			$entry->add_data(
+				array(
+					'status' => 500,
+				)
+			);
+
+			return $entry;
+		}
+
+		$action = 'spam';
+		if ( false === $spam ) {
+			$action = 'unspam';
+		}
+
+		if ( ! reception_update_spam_status( $id, $action ) ) {
+			return new WP_Error(
+				'reception_rest_update_spam_status_failed_failed',
+				__( 'Désolé, nous ne sommes pas parvenus à mettre à jour l’email vérifié.', 'reception' ),
+				array(
+					'status' => 500,
+				)
+			);
+		}
+
+		$entry->is_spam = $spam;
+
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->prepare_item_for_response( (array) $entry, $request );
+		$response = rest_ensure_response( $response );
+
+		return $response;
+	}
+
+	/**
 	 * Checks if the user can delete a verified email.
 	 *
 	 * @since 1.0.0
@@ -956,6 +1038,19 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 				'type'        => 'integer',
 				'context'     => array( 'edit' ),
 				'required'    => true,
+			);
+		} elseif ( WP_REST_Server::EDITABLE === $method ) {
+			$args['context']['default'] = 'edit';
+			$args['id']['required']     = true;
+			unset( $args['email'] );
+
+			$args['spam'] = array(
+				'description'       => __( 'Informe si l’e-mail a été marqué comme spam.', 'reception' ),
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'validate_callback' => 'rest_validate_request_arg',
+				'context'           => array( 'edit' ),
+				'required'          => true,
 			);
 		}
 

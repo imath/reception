@@ -225,7 +225,66 @@ class Reception_Verified_Email_REST_controller_UnitTestCase extends WP_Test_REST
 	 * @group rest_update_item
 	 */
 	public function test_update_item() {
-		$this->markTestSkipped();
+		$v = reception_insert_email_to_verify( 'visitor@tospam.com' );
+		$entry = reception_get_email_verification_entry_by_id( $v['id'] );
+
+		$this->assertFalse( $entry->is_spam );
+
+		wp_set_current_user( $this->admin_user );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( $this->endpoint_url . '/%d', $v['id'] ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'spam' => true ) ) );
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertTrue( $get_data['spam'] );
+	}
+
+	/**
+	 * @group rest_update_item
+	 */
+	public function test_update_item_unspam() {
+		$v = reception_insert_email_to_verify( 'visitor@tounspam.com' );
+		reception_update_spam_status( $v['id'], 'spam' );
+		$entry = reception_get_email_verification_entry_by_id( $v['id'] );
+
+		$this->assertTrue( $entry->is_spam );
+
+		wp_set_current_user( $this->admin_user );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( $this->endpoint_url . '/%d', $v['id'] ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'spam' => false ) ) );
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->server->dispatch( $request );
+		$get_data = $response->get_data();
+
+		$this->assertFalse( $get_data['spam'] );
+	}
+
+	/**
+	 * @group rest_update_item
+	 */
+	public function test_update_item_unauthorized() {
+		$v = reception_insert_email_to_verify( 'visitor@unathaurized.com' );
+		$entry = reception_get_email_verification_entry_by_id( $v['id'] );
+
+		$this->assertFalse( $entry->is_spam );
+
+		wp_set_current_user( $this->member );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( $this->endpoint_url . '/%d', $v['id'] ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'spam' => false ) ) );
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'reception_rest_authorization_required', $response, rest_authorization_required_code() );
 	}
 
 	/**
