@@ -4,7 +4,7 @@
 const { Component, render, createElement, Fragment } = wp.element;
 const { __ } = wp.i18n;
 const { RichText } = wp.blockEditor;
-const { Button, TextControl, Modal, Snackbar, SelectControl } = wp.components;
+const { Button, TextControl, Modal, Snackbar, SelectControl, Notice } = wp.components;
 const { apiFetch } = wp;
 const { isEmail } = wp.url;
 
@@ -108,7 +108,7 @@ class MemberContactForm extends Component {
 		if ( ! this.isUserLoggedIn || this.isSelfProfile ) {
 			if ( ! name ) {
 				this.setState( { feedback: [
-					( <p key="missing-name" className="reception-error">{ __( 'Merci de renseigner un prénom et un nom.', 'reception' ) }</p> ),
+					( <Notice key="missing-name" status="error" isDismissible={ false }>{ __( 'Merci de renseigner un prénom et un nom.', 'reception' ) }</Notice> ),
 				] } );
 
 				return;
@@ -116,7 +116,7 @@ class MemberContactForm extends Component {
 
 			if ( ! isEmail( email ) ) {
 				this.setState( { feedback: [
-					( <p key="missing-email" className="reception-error">{ __( 'Merci de renseigner un e-mail valide.', 'reception' ) }</p> ),
+					( <Notice key="missing-email" status="error" isDismissible={ false }>{ __( 'Merci de renseigner un e-mail valide.', 'reception' ) }</Notice> ),
 				] } );
 
 				return;
@@ -124,7 +124,7 @@ class MemberContactForm extends Component {
 
 			if ( ! checked ) {
 				this.setState( { feedback: [
-					( <p key="missing-email" className="reception-info">{ __( 'Vérification de votre e-mail. merci de patienter.', 'reception' ) }</p> ),
+					( <Notice key="checking-email" status="info" isDismissible={ false }>{ __( 'Vérification de votre e-mail. merci de patienter.', 'reception' ) }</Notice> ),
 				] } );
 
 				apiFetch( {
@@ -133,19 +133,27 @@ class MemberContactForm extends Component {
 				} ).then( ( verifiedEmail ) => {
 					let updatedFeedback = [];
 
-					if ( this.isSelfProfile && ( ! verifiedEmail.id || ! verifiedEmail.confirmed ) ) {
-						updatedFeedback = [ (
-							<Fragment key="reception-not-verified">
-								<p className="reception-error">{ __( 'L‘email du visisteur que vous souhaitez contacter n’a pas été vérifié, merci de lui demander de le faire ou de le contacter directement.', 'reception' ) }</p>
-							</Fragment>
-						) ];
+					if ( this.isSelfProfile ) {
+						if ( true === verifiedEmail.spam ) {
+							updatedFeedback = [ (
+								<Notice key="reception-spam" status="error" isDismissible={ false }>{ __( 'Désolé l’e-mail du visiteur a été marqué comme indésirable : vous ne pouvez pas utiliser le site pour le contacter.', 'reception' ) }</Notice>
+							) ];
+						} else if ( ! verifiedEmail.id || ! verifiedEmail.confirmed ) {
+							updatedFeedback = [ (
+								<Notice key="reception-not-verified" status="error" isDismissible={ false }>{ __( 'L‘email du visisteur que vous souhaitez contacter n’a pas été vérifié, merci de lui demander de le faire ou de le contacter directement.', 'reception' ) }</Notice>
+							) ];
+						}
 					} else {
-						if ( ! verifiedEmail.id ) {
+						if ( true === verifiedEmail.spam ) {
+							updatedFeedback = [ (
+								<Notice key="reception-spam" status="error" isDismissible={ false }>{ __( 'Désolé votre e-mail a été marqué comme indésirable : vous ne pouvez pas contacter ce membre.', 'reception' ) }</Notice>
+							) ];
+						} else if ( ! verifiedEmail.id ) {
 							updatedFeedback = [ (
 								<Fragment key="reception-unverified">
-									<p className="reception-info">{ __( 'Votre e-mail a besoin d’être validé, cette étape de validation est nécessaire afin de garantir à nos membres qu’ils ne recevront pas de messages indésirables.', 'reception' ) }</p>
-									<p className="reception-help">{ __( 'Merci de cliquer sur le bouton « Obtenir le code de validation » afin de recevoir un e-mail le contenant dans les prochaines minutes.', 'reception' ) }</p>
-									<p className="reception-help">{ __( 'Dés que vous l’aurez reçu, vous pourrez revenir sur cette page afin de l’utiliser pour déverrouiller cette sécurité et contacter ce membre. Merci de votre compréhension.', 'reception' ) }</p>
+									<Notice status="warning" isDismissible={ false }>{ __( 'Votre e-mail a besoin d’être validé, cette étape de validation est nécessaire afin de garantir à nos membres qu’ils ne recevront pas de messages indésirables.', 'reception' ) }</Notice>
+									<p className="reception-help description">{ __( 'Merci de cliquer sur le bouton « Obtenir le code de validation » afin de recevoir un e-mail le contenant dans les prochaines minutes.', 'reception' ) }</p>
+									<p className="reception-help description">{ __( 'Dés que vous l’aurez reçu, vous pourrez revenir sur cette page afin de l’utiliser pour déverrouiller cette sécurité et contacter ce membre. Merci de votre compréhension.', 'reception' ) }</p>
 									<Button
 										isPrimary={ true }
 										onClick={ ( e ) => this.sendValidationCode( e ) }
@@ -156,9 +164,7 @@ class MemberContactForm extends Component {
 							) ];
 						} else if ( ! verifiedEmail.confirmed ) {
 							updatedFeedback = [ (
-								<Fragment key="reception-do-verify">
-									<p className="reception-info">{ __( 'Le code de validation associé à votre e-mail a besoin d’être vérifié, Merci de copier le code de validation que vous avez reçu dans le champ ci-dessous avant de lancer la vérification.', 'reception' ) }</p>
-								</Fragment>
+								<Notice key="reception-do-verify" status="info" isDismissible={ false }>{ __( 'Le code de validation associé à votre e-mail a besoin d’être vérifié, Merci de copier le code de validation que vous avez reçu dans le champ ci-dessous avant de lancer la vérification.', 'reception' ) }</Notice>
 							) ];
 
 							this.setState( { needsValidation: true } );
@@ -365,51 +371,53 @@ class MemberContactForm extends Component {
 				}
 				{ isEditorOpen && (
 					<Modal title={ modalTitle } onRequestClose={ this.closeEmailEditor } className="reception-contact-form-modal">
-						{ feedback }
-						{ 0 === feedback.length && (
-							<Fragment>
-								{ true === needsContent && (
-									<Fragment>
-										<h2>{ __( 'Votre message', 'reception' ) }</h2>
-										<RichText
-											value={ message }
-											tagName="p"
-											onChange={ ( text ) => this.setState( { message: text } ) }
-											placeholder={ __( 'Utilisez cette zone pour rédiger votre message', 'reception' ) }
-											multiline={ true }
-										/>
-									</Fragment>
-								) }
-								<Button
-									isPrimary={ true }
-									onClick={ ( e ) => this.sendEmail( e ) }
-								>
-									{ modalAction }
-								</Button>
-							</Fragment>
-						) }
-						{ true === needsValidation && (
-							<Fragment>
-								<TextControl
-									label={ __( 'Code de validation', 'reception') }
-									type="password"
-									value={ confirmationCode }
-									onChange={ ( code ) => this.setState( { confirmationCode: code } ) }
-									required={ true }
-								/>
-								<Button
-									isPrimary={ true }
-									onClick={ ( e ) => this.checkValidationCode( e ) }
-								>
-									{ __( 'Lancer la vérification', 'reception' ) }
-								</Button>
-							</Fragment>
-						) }
-						<Button
-							onClick={ () => this.closeEmailEditor() }
-						>
-							{ labelCancelButton }
-						</Button>
+						<div className="reception-modal-content">
+							{ feedback }
+							{ 0 === feedback.length && (
+								<Fragment>
+									{ true === needsContent && (
+										<Fragment>
+											<h2>{ __( 'Votre message', 'reception' ) }</h2>
+											<RichText
+												value={ message }
+												tagName="p"
+												onChange={ ( text ) => this.setState( { message: text } ) }
+												placeholder={ __( 'Utilisez cette zone pour rédiger votre message', 'reception' ) }
+												multiline={ true }
+											/>
+										</Fragment>
+									) }
+									<Button
+										isPrimary={ true }
+										onClick={ ( e ) => this.sendEmail( e ) }
+									>
+										{ modalAction }
+									</Button>
+								</Fragment>
+							) }
+							{ true === needsValidation && (
+								<Fragment>
+									<TextControl
+										label={ __( 'Code de validation', 'reception') }
+										type="password"
+										value={ confirmationCode }
+										onChange={ ( code ) => this.setState( { confirmationCode: code } ) }
+										required={ true }
+									/>
+									<Button
+										isPrimary={ true }
+										onClick={ ( e ) => this.checkValidationCode( e ) }
+									>
+										{ __( 'Lancer la vérification', 'reception' ) }
+									</Button>
+								</Fragment>
+							) }
+							<Button
+								onClick={ () => this.closeEmailEditor() }
+							>
+								{ labelCancelButton }
+							</Button>
+						</div>
 					</Modal>
 				) }
 			</Fragment>

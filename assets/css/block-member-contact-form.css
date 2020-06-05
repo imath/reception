@@ -73,6 +73,7 @@
 	padding-left: 1em;
 }
 
-.reception-contact-form-modal .components-button {
+.reception-contact-form-modal .reception-modal-content .components-button {
 	margin-right: 1em;
+	margin-top: 1em;
 }
