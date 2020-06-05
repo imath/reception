@@ -17,6 +17,8 @@ class ManageVerifiedEmail extends Component {
 			entry: [],
 			feedback: {},
 			searching: false,
+			spamming: false,
+			deleting: false,
 		};
 	}
 
@@ -63,17 +65,57 @@ class ManageVerifiedEmail extends Component {
 	spamUnspam( e ) {
 		e.preventDefault();
 
-		const { entry } = this.state;
+		const { entry, spamming } = this.state;
 
-		// @todo.
+		if ( false === spamming ) {
+			this.setState( { spamming: true, feedback: {} } );
+
+			apiFetch( {
+				path: '/reception/v1/email/' + entry[0].id,
+				method: 'PUT',
+				data: {
+					spam: ! entry[0].spam,
+				}
+			} ).then( ( verifiedEmail ) => {
+				this.setState( { entry: [ verifiedEmail ] } );
+			}, ( error ) => {
+				this.setState( { feedback: {
+					status: 'error',
+					text: error.message,
+				} } );
+			} ).then( () => {
+				this.setState( { spamming: false } );
+			} );
+		}
 	}
 
 	deleteEntry( e ) {
 		e.preventDefault();
 
-		const { entry } = this.state;
+		const { entry, deleting } = this.state;
 
-		// @todo.
+		if ( false === deleting ) {
+			this.setState( { deleting: true, feedback: {} } );
+
+			apiFetch( {
+				path: '/reception/v1/email/' + entry[0].id,
+				method: 'DELETE',
+			} ).then( () => {
+				this.setState( { entry: [] } );
+
+				this.setState( { feedback: {
+					status: 'success',
+					text: __( 'L’e-mail vérifié a bien été supprimé.'),
+				} } );
+			}, ( error ) => {
+				this.setState( { feedback: {
+					status: 'error',
+					text: error.message,
+				} } );
+			} ).then( () => {
+				this.setState( { deleting: false } );
+			} );
+		}
 	}
 
 	getHeadFoot( id ) {
@@ -102,20 +144,21 @@ class ManageVerifiedEmail extends Component {
 
 		if ( entry.length >= 1 ) {
 			entryItems = entry.map( ( item ) => {
+				let isSpam = true === item.spam;
 				return (
-					<tr key={ 'item-' + item.id } id={ 'item-' + item.id } className={ 'comment byuser depth-1 ' + true === item.spam ? 'unapproved' : 'approved' }>
+					<tr key={ 'item-' + item.id } id={ 'item-' + item.id } className={ isSpam ? 'comment byuser depth-1 unapproved' : 'comment byuser depth-1 approved' }>
 						<th scope="row" className="check-column" />
 						<td className="comment column-comment has-row-actions column-primary">
 							<strong>{ item.code }</strong>
 							<div className="row-actions">
-								{ true !== item.spam && (
+								{ ! isSpam && (
 									<span className="spam">
 										<a href="#markspam" onClick={ ( e ) => this.spamUnspam( e ) } aria-label={ __( 'Marquer comme indésirable', 'reception' ) } role="button">
 											{ __( 'Indésirable', 'reception' ) }
 										</a>
 									</span>
 								) }
-								{ true === item.spam && (
+								{ isSpam && (
 									<span className="unspam approve">
 										<a href="#markham" onClick={ ( e ) => this.spamUnspam( e ) } aria-label={ __( 'Marquer comme non indésirable', 'reception' ) } role="button">
 											{ __( 'Non Indésirable', 'reception' ) }
