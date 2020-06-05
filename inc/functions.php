@@ -178,6 +178,7 @@ function reception_init_blocks() {
 				'wp-blocks',
 				'wp-element',
 				'wp-i18n',
+				'wp-components',
 			),
 		)
 	);

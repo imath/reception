@@ -3,6 +3,7 @@
  */
 const { registerBlockType } = wp.blocks;
 const { createElement } = wp.element;
+const { Notice } = wp.components;
 const { __ } = wp.i18n;
 
 const receptionInfo = __( 'Utilisez cet espace pour personnaliser l’apparence des pages d’accueil de vos membres.', 'reception' )
@@ -25,7 +26,9 @@ registerBlockType( 'reception/info', {
 
 	edit: function() {
 		return(
-			<p>{ receptionInfo }</p>
+			<Notice status="info" isDismissible={ false }>
+				{ receptionInfo }
+			</ Notice>
 		)
 	},
 } );
