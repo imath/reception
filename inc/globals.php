@@ -20,7 +20,7 @@ function reception_globals() {
 	$reception = reception();
 
 	// Plugin version.
-	$reception->version = '1.0.0-alpha';
+	$reception->version = '1.0.0';
 
 	// Path.
 	$reception->dir = plugin_dir_path( dirname( __FILE__ ) );

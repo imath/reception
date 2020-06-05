@@ -12,6 +12,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Loads translations.
+ *
+ * @since 1.0.0
+ */
+function reception_translate() {
+	load_plugin_textdomain( 'reception', false, trailingslashit( basename( reception()->dir ) ) . 'languages' );
+}
+add_action( 'plugins_loaded', 'reception_translate', 20 );
+
+/**
+ * Sets the reception blocks language directory and domain.
+ *
+ * @since 1.0.0
+ *
+ * @param null|string $value               The BuddyPress language directory or the BuddyPress domain.
+ * @param string      $block_editor_script The Block's JS script handler.
+ * @return string The language directory or the domain.
+ */
+function reception_block_translate_dir( $value = null, $block_editor_script = '' ) {
+	if ( in_array( $block_editor_script, array( 'reception-block-member-bio', 'reception-block-member-contact-form', 'reception-info' ), true ) ) {
+		if ( 'buddypress' === $value ) {
+			$value = 'reception';
+		} elseif ( is_null( $value ) ) {
+			$value = trailingslashit( reception()->dir ) . 'languages';
+		}
+	}
+
+	return $value;
+}
+add_filter( 'bp_block_translation_dir', 'reception_block_translate_dir', 10, 2 );
+
+/**
  * Returns the current version of the plugin.
  *
  * @since 1.0.0
@@ -191,9 +223,11 @@ add_action( 'bp_blocks_init', 'reception_init_blocks' );
  * @since 1.0.0
  */
 function reception_register_scripts() {
-	$js_base_url  = trailingslashit( reception()->url ) . 'js/scripts/';
-	$css_base_url = trailingslashit( reception()->url ) . 'assets/css/';
-	$version      = reception_get_version();
+	$js_base_url     = trailingslashit( reception()->url ) . 'js/scripts/';
+	$css_base_url    = trailingslashit( reception()->url ) . 'assets/css/';
+	$version         = reception_get_version();
+	$domain          = 'reception';
+	$translation_dir = trailingslashit( reception()->dir ) . 'languages';
 
 	if ( bp_is_my_profile() ) {
 		wp_register_script(
@@ -209,6 +243,8 @@ function reception_register_scripts() {
 			$version,
 			true
 		);
+
+		wp_set_script_translations( 'reception-script-member-bio', $domain, $translation_dir );
 
 		wp_register_style(
 			'reception-script-member-bio',
@@ -234,6 +270,8 @@ function reception_register_scripts() {
 		$version,
 		true
 	);
+
+	wp_set_script_translations( 'reception-script-member-contact-form', $domain, $translation_dir );
 }
 add_action( 'bp_enqueue_scripts', 'reception_register_scripts', 1 );
 
@@ -626,7 +664,7 @@ function reception_get_email_templates() {
 				'term_id'      => 0,
 				'post_title'   => _x( '[{{{site.name}}}] {{reception.membername}} vous a écrit', 'BP Email message object', 'reception' ),
 				'post_content' => _x( "<a href=\"{{{reception.memberurl}}}\">{{reception.membername}}</a> vous a contacté. Voici son message :\n\n{{{reception.content}}}\n\nPour répondre à {{reception.membername}}, vous pouvez utiliser son <a href=\"{{{reception.memberurl}}}\">formulaire de contact depuis notre site</a>.", 'BP Email message html content', 'reception' ),
-				'post_excerpt' => _x( "{{reception.membername}} Voici son message :\n\n{{reception.content}}\n\nPour répondre à {{reception.membername}}, vous pouvez utiliser son formulaire de contact depuis notre site :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
+				'post_excerpt' => _x( "{{reception.membername}} vous a contacté. Voici son message :\n\n{{reception.content}}\n\nPour répondre à {{reception.membername}}, vous pouvez utiliser son formulaire de contact depuis notre site :\n\n{{{reception.memberurl}}}", 'BP Email message text content', 'reception' ),
 			),
 		)
 	);

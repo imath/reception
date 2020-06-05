@@ -145,8 +145,8 @@ function reception_admin_updater() {
 
 	if ( ! $db_version ) {
 		reception_admin_install();
-	} elseif ( version_compare( $db_version, $current_version, '<' ) ) {
-		wp_die( 'There is no other versions !' );
+	} elseif ( version_compare( $db_version, $current_version, '<' ) ) { // phpcs:ignore
+		// There is no other versions!
 	}
 
 	bp_update_option( '_reception_version', $current_version );
@@ -159,8 +159,10 @@ add_action( 'admin_init', 'reception_admin_updater', 1999 );
  * @since 1.0.0
  */
 function reception_admin_register_scripts() {
-	$version = reception_get_version();
-	$url     = reception()->url;
+	$version         = reception_get_version();
+	$url             = reception()->url;
+	$domain          = 'reception';
+	$translation_dir = trailingslashit( reception()->dir ) . 'languages';
 
 	wp_register_script(
 		'reception-editor',
@@ -174,6 +176,8 @@ function reception_admin_register_scripts() {
 		$version,
 		true
 	);
+
+	wp_set_script_translations( 'reception-editor', $domain, $translation_dir );
 
 	wp_register_script(
 		'reception-admin-verified-emails',
@@ -189,6 +193,8 @@ function reception_admin_register_scripts() {
 		$version,
 		true
 	);
+
+	wp_set_script_translations( 'reception-admin-verified-emails', $domain, $translation_dir );
 
 	add_action( bp_core_admin_hook(), 'reception_admin_menus' );
 }

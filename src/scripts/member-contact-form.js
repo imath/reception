@@ -136,7 +136,7 @@ class MemberContactForm extends Component {
 					if ( this.isSelfProfile ) {
 						if ( true === verifiedEmail.spam ) {
 							updatedFeedback = [ (
-								<Notice key="reception-spam" status="error" isDismissible={ false }>{ __( 'Désolé l’e-mail du visiteur a été marqué comme indésirable : vous ne pouvez pas utiliser le site pour le contacter.', 'reception' ) }</Notice>
+								<Notice key="reception-spam" status="error" isDismissible={ false }>{ __( 'Désolé, l’e-mail du visiteur a été marqué comme indésirable : vous ne pouvez pas utiliser le site pour le contacter.', 'reception' ) }</Notice>
 							) ];
 						} else if ( ! verifiedEmail.id || ! verifiedEmail.confirmed ) {
 							updatedFeedback = [ (
@@ -146,7 +146,7 @@ class MemberContactForm extends Component {
 					} else {
 						if ( true === verifiedEmail.spam ) {
 							updatedFeedback = [ (
-								<Notice key="reception-spam" status="error" isDismissible={ false }>{ __( 'Désolé votre e-mail a été marqué comme indésirable : vous ne pouvez pas contacter ce membre.', 'reception' ) }</Notice>
+								<Notice key="reception-spam" status="error" isDismissible={ false }>{ __( 'Désolé, votre e-mail a été marqué comme indésirable : vous ne pouvez pas contacter ce membre.', 'reception' ) }</Notice>
 							) ];
 						} else if ( ! verifiedEmail.id ) {
 							updatedFeedback = [ (

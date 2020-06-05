@@ -11,7 +11,7 @@
  * Plugin Name:       Réception
  * Plugin URI:        https://github.com/imath/reception
  * Description:       Page d'accueil des membres BuddyPress personnalisable à l'aide de blocs WordPress.
- * Version:           1.0.0-alpha
+ * Version:           1.0.0
  * Author:            imath
  * Author URI:        https://imathi.eu
  * License:           GPL-2.0+
