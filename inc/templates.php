@@ -165,3 +165,27 @@ function reception_edit_post_link( $text = null, $before = '', $after = '' ) {
 
 	edit_post_link( $text, $before, $after, $reception_page_id );
 }
+
+/**
+ * Loads a companion stylesheet if if exists into the theme.
+ *
+ * @since 1.0.0
+ */
+function reception_enqueue_companion_stylesheet() {
+	if ( ! bp_is_user_front() ) {
+		return;
+	}
+
+	$companion_style_path = get_theme_file_path( 'css/reception.css' );
+
+	// Enqueues the companion stylesheet if available.
+	if ( file_exists( $companion_style_path ) ) {
+		wp_enqueue_style(
+			'reception-companion-style',
+			esc_url_raw( get_theme_file_uri( 'css/reception.css' ) ),
+			array(),
+			reception_get_version()
+		);
+	}
+}
+add_action( 'bp_enqueue_scripts', 'reception_enqueue_companion_stylesheet' );

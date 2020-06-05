@@ -29,3 +29,7 @@ body.bp-user.my-account.front .reception-block-member-bio .rich-text p {
 	padding-right: 1em;
 	padding-left: 1em;
 }
+
+.reception-block-member-bio.dynamic button {
+	margin-top: 1em;
+}
