@@ -1,0 +1,14 @@
+/src export-ignore
+/tests export-ignore
+/.editorconfig export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/CHANGELOG.md export-ignore
+/composer.json export-ignore
+/composer.lock export-ignore
+/LICENSE export-ignore
+/package.json export-ignore
+/package-lock.json export-ignore
+/icon.png export-ignore
+/screenshot.png export-ignore
+/phpunit.xml.dist export-ignore
