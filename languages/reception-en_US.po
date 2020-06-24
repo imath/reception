@@ -7,8 +7,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2020-06-05T15:07:46+00:00\n"
-"PO-Revision-Date: 2020-06-05 17:08+0200\n"
+"POT-Creation-Date: 2020-06-24T15:01:57+00:00\n"
+"PO-Revision-Date: 2020-06-24 17:02+0200\n"
 "Language: en_US\n"
 "X-Generator: Poedit 2.3.1\n"
 "X-Domain: reception\n"
@@ -230,173 +230,173 @@ msgstr "Verified date of the email."
 msgid "Date à laquelle l’e-mail a été utilisé pour la dernière fois."
 msgstr "Last use date of the email."
 
-#: inc/functions.php:66
+#: inc/functions.php:80
 msgid "Pages de réception"
 msgstr "Home pages"
 
-#: inc/functions.php:68
+#: inc/functions.php:82
 msgctxt "General name for the post type"
 msgid "Pages de réception"
 msgstr "Front pages"
 
-#: inc/functions.php:69
+#: inc/functions.php:83
 msgctxt "Name for one object of this post type"
 msgid "Page de réception"
 msgstr "Front page"
 
-#: inc/functions.php:70
+#: inc/functions.php:84
 msgctxt "reception"
 msgid "Ajouter nouvelle"
 msgstr "Add new"
 
-#: inc/functions.php:71
+#: inc/functions.php:85
 msgctxt "Label for adding a new singular item"
 msgid "Ajouter une nouvelle page de réception"
 msgstr "Add a new front page"
 
-#: inc/functions.php:72
+#: inc/functions.php:86
 msgctxt "Label for editing a singular item"
 msgid "Modifier la page de réception"
 msgstr "Edit front page"
 
-#: inc/functions.php:73
+#: inc/functions.php:87
 msgctxt "Label for the new item page title"
 msgid "Nouvelle page de réception"
 msgstr "New front page"
 
-#: inc/functions.php:74
+#: inc/functions.php:88
 msgctxt "Label for the new item page title"
 msgid "Afficher la page de réception"
 msgstr "View front page"
 
-#: inc/functions.php:75
+#: inc/functions.php:89
 msgctxt "Label for the view items link"
 msgid "Afficher ma page de réception"
 msgstr "View my front page"
 
-#: inc/functions.php:76
+#: inc/functions.php:90
 msgctxt "Label for searching plural items"
 msgid "Rechercher des pages de réception"
 msgstr "Search front pages"
 
-#: inc/functions.php:77
+#: inc/functions.php:91
 msgctxt "Label used when no items are found"
 msgid "Aucune page de réception trouvée"
 msgstr "No front pages found"
 
-#: inc/functions.php:78
+#: inc/functions.php:92
 msgctxt "Label to signify all items in a submenu link"
 msgid "Toutes les pages de réception"
 msgstr "All front pages"
 
-#: inc/functions.php:79
+#: inc/functions.php:93
 msgctxt "Label for the media frame button"
 msgid "Insérer dans la page de réception"
 msgstr "Inset into the front page"
 
-#: inc/functions.php:80
+#: inc/functions.php:94
 msgctxt "Label for the media frame filter"
 msgid "Téléversé dans cette page de réception"
 msgstr "Uploaded into this front page"
 
-#: inc/functions.php:81
+#: inc/functions.php:95
 msgctxt "Label for the table views hidden heading"
 msgid "Filtrer la liste des pages de réception"
 msgstr "Filter front pages"
 
-#: inc/functions.php:82
+#: inc/functions.php:96
 msgctxt "Label for the table pagination hidden heading"
 msgid "Navigation de la liste des pages de réception"
 msgstr "Front pages navigation"
 
-#: inc/functions.php:83
+#: inc/functions.php:97
 msgctxt "Label for the table hidden heading"
 msgid "Liste des pages de réception"
 msgstr "Front pages list"
 
-#: inc/functions.php:84
+#: inc/functions.php:98
 msgctxt "Label used when an item is published"
 msgid "Page de réception publiée"
 msgstr "Front page published"
 
-#: inc/functions.php:85
+#: inc/functions.php:99
 msgctxt "Label used when an item is switched to a draft"
 msgid "Page de réception reconvertie en brouillon"
 msgstr "Front page converted to draft"
 
-#: inc/functions.php:86
+#: inc/functions.php:100
 msgctxt " Label used when an item is updated"
 msgid "Page de réception mise à jour"
 msgstr "Front page updated"
 
-#: inc/functions.php:88
+#: inc/functions.php:102
 msgid "Pages d’accueil des membres BuddyPress personnalisable à l’aide de blocs WordPress"
 msgstr "WordPress blocks based customizable BuddyPress Members front pages"
 
-#: inc/functions.php:160
+#: inc/functions.php:174
 #: js/blocks/member-bio.js:30
 msgid "À propos"
 msgstr "About"
 
-#: inc/functions.php:183
+#: inc/functions.php:197
 #: js/blocks/member-contact-form.js:30
 msgid "Contacter ce membre"
 msgstr "Contact this member"
 
-#: inc/functions.php:326
+#: inc/functions.php:340
 msgid "Ce membre n’a pas renseigné sa présentation pour le moment."
 msgstr "This member has no presentation yet."
 
-#: inc/functions.php:387
+#: inc/functions.php:401
 #: js/scripts/member-contact-form.js:131
 msgid "Envoyer un message"
 msgstr "Send a message"
 
-#: inc/functions.php:423
+#: inc/functions.php:437
 msgid "Répondre à un visiteur"
 msgstr "Reply to a visitor"
 
-#: inc/functions.php:447
+#: inc/functions.php:461
 #: js/scripts/member-contact-form.js:447
 msgid "Motif de votre contact"
 msgstr "Contact reason"
 
-#: inc/functions.php:458
+#: inc/functions.php:472
 #: js/scripts/member-contact-form.js:423
 msgid "Votre e-mail (obligatoire)"
 msgstr "You email (required)"
 
-#: inc/functions.php:460
+#: inc/functions.php:474
 msgid "Votre nom (obligatoire)"
 msgstr "Your name (required)"
 
-#: inc/functions.php:462
+#: inc/functions.php:476
 #: js/scripts/member-contact-form.js:464
 msgid "Rédiger votre message"
 msgstr "Write your message"
 
-#: inc/functions.php:551
-#: inc/functions.php:575
+#: inc/functions.php:565
+#: inc/functions.php:589
 msgctxt "My Account Front page"
 msgid "Accueil"
 msgstr "Home"
 
-#: inc/functions.php:579
+#: inc/functions.php:593
 msgctxt "customizer menu type label"
 msgid "lien personnalisé"
 msgstr "custom link"
 
-#: inc/functions.php:642
+#: inc/functions.php:656
 msgctxt "BP Email message description"
 msgid "Vérification de l’e-mail d’un visiteur du site"
 msgstr "Visitor’s email check"
 
-#: inc/functions.php:644
+#: inc/functions.php:658
 msgctxt "BP Email message object"
 msgid "[{{{site.name}}}] Code de validation de votre e-mail"
 msgstr "[{{{site.name}}}] Validation code for your email"
 
-#: inc/functions.php:645
+#: inc/functions.php:659
 msgctxt "BP Email message html content"
 msgid ""
 "{{reception.visitorname}}, vous souhaitez contacter {{reception.membername}}. Afin de nous assurer de la validité de votre adresse e-mail, merci de saisir ce code {{{reception.code}}} dans le champ \"Code de validation\" du formulaire de contact de {{reception.membername}}.\n"
@@ -411,7 +411,7 @@ msgstr ""
 "\n"
 "This process is required when you first use our site to contact one of its members, thanks for you understanding."
 
-#: inc/functions.php:646
+#: inc/functions.php:660
 msgctxt "BP Email message text content"
 msgid ""
 "{{reception.visitorname}}, vous souhaitez contacter {{reception.membername}}. Afin de nous assurer de la validité de votre adresse e-mail, merci de saisir ce code {{{reception.code}}} dans le champ \"Code de validation\" du formulaire de contact de {{reception.membername}}.\n"
@@ -430,17 +430,17 @@ msgstr ""
 "\n"
 "This process is required when you first use our site to contact one of its members, thanks for you understanding."
 
-#: inc/functions.php:649
+#: inc/functions.php:663
 msgctxt "BP Email message description"
 msgid "Un visiteur du site contacte un membre"
 msgstr "A visitor contacts a member"
 
-#: inc/functions.php:651
+#: inc/functions.php:665
 msgctxt "BP Email message object"
 msgid "[{{{site.name}}}] Un visiteur du site vous contacte"
 msgstr "[{{{site.name}}}] a visitor is contacting you"
 
-#: inc/functions.php:652
+#: inc/functions.php:666
 msgctxt "BP Email message html content"
 msgid ""
 "{{reception.visitorname}} ({{reception.visitoremail}}) vous a contacté. Voici son message :\n"
@@ -455,7 +455,7 @@ msgstr ""
 "\n"
 "You can <a href=\"mailto:{{{reception.visitoremail}}}\">directly reply</a> or use our site to avoid giving them your email address: <a href=\"{{{reception.memberurl}}}\">reply from the site</a>."
 
-#: inc/functions.php:653
+#: inc/functions.php:667
 msgctxt "BP Email message text content"
 msgid ""
 "{{reception.visitorname}} <{{reception.visitoremail}}> vous a contacté. Voici son message :\n"
@@ -474,17 +474,17 @@ msgstr ""
 "\n"
 "{{{reception.memberurl}}}"
 
-#: inc/functions.php:656
+#: inc/functions.php:670
 msgctxt "BP Email message description"
 msgid "Un membre du site répond à un visiteur"
 msgstr "A site member replies to a visitor"
 
-#: inc/functions.php:658
+#: inc/functions.php:672
 msgctxt "BP Email message object"
 msgid "[{{{site.name}}}] {{reception.membername}} vous a répondu"
 msgstr "[{{{site.name}}}] {{reception.membername}} replied to you"
 
-#: inc/functions.php:659
+#: inc/functions.php:673
 msgctxt "BP Email message html content"
 msgid ""
 "<a href=\"{{{reception.memberurl}}}\">{{reception.membername}}</a> vous a répondu. Voici cette réponse :\n"
@@ -499,7 +499,7 @@ msgstr ""
 "\n"
 "To contact {{reception.membername}}, you can use their <a href=\"{{{reception.memberurl}}}\">contact form on our site</a>."
 
-#: inc/functions.php:660
+#: inc/functions.php:674
 msgctxt "BP Email message text content"
 msgid ""
 "{{reception.membername}} vous a répondu. Voici cette réponse :\n"
@@ -518,17 +518,17 @@ msgstr ""
 "\n"
 "{{{reception.memberurl}}}"
 
-#: inc/functions.php:663
+#: inc/functions.php:677
 msgctxt "BP Email message description"
 msgid "Un membre du site écrit à un autre"
 msgstr "A site member contacts another one"
 
-#: inc/functions.php:665
+#: inc/functions.php:679
 msgctxt "BP Email message object"
 msgid "[{{{site.name}}}] {{reception.membername}} vous a écrit"
 msgstr "[{{{site.name}}}] {{reception.membername}} sent you a message"
 
-#: inc/functions.php:666
+#: inc/functions.php:680
 msgctxt "BP Email message html content"
 msgid ""
 "<a href=\"{{{reception.memberurl}}}\">{{reception.membername}}</a> vous a contacté. Voici son message :\n"
@@ -543,7 +543,7 @@ msgstr ""
 "\n"
 "To reply to {{reception.membername}}, you can use their <a href=\"{{{reception.memberurl}}}\">contact form from our site</a>."
 
-#: inc/functions.php:667
+#: inc/functions.php:681
 msgctxt "BP Email message text content"
 msgid ""
 "{{reception.membername}} vous a contacté. Voici son message :\n"
@@ -562,55 +562,55 @@ msgstr ""
 "\n"
 "{{{reception.memberurl}}}"
 
-#: inc/functions.php:717
+#: inc/functions.php:731
 msgid "Désolé, aucune adresse e-mail fournie."
 msgstr "Sorry, the email address is missing."
 
-#: inc/functions.php:740
+#: inc/functions.php:754
 msgid "Désolé, l’identifiant est manquant."
 msgstr "Sorry, the identifier is missing."
 
-#: inc/functions.php:752
+#: inc/functions.php:766
 msgid "Désolé, il n’existe pas d’email vérifié pour cet identifiant."
 msgstr "Sorry, there are no verified emails for this identifier."
 
-#: inc/functions.php:900
+#: inc/functions.php:914
 msgid "Désolé, une erreur est survenue lors de la mise à jour de la date d’utilisation de l’e-mail."
 msgstr "Sorry, there was an error during the update about the last time the verified email was used."
 
-#: inc/functions.php:959
+#: inc/functions.php:973
 msgid "Désolé, l’e-mail fourni ne respecte pas le format d’une adresse e-mail."
 msgstr "Sorry, the provided email does not respect the required format."
 
-#: inc/functions.php:968
+#: inc/functions.php:982
 msgid "Désolé, l’e-mail fourni a déjà fait l’objet d’une demande de vérification."
 msgstr "Sorry, the provided email has already been submitted for verification."
 
-#: inc/functions.php:988
+#: inc/functions.php:1002
 msgid "Désolé, la demande de vérification de l’e-mail fourni n’a pu être créée."
 msgstr "Sorry, the verification request using the provided email could not been created."
 
-#: inc/functions.php:1015
+#: inc/functions.php:1029
 msgid "Désolé, l’e-mail ou le code fourni ne respectent pas le format attendu."
 msgstr "Sorry, the email or the code provided do not respect the required format."
 
-#: inc/functions.php:1028
+#: inc/functions.php:1042
 msgid "Désolé, cet e-mail n’a pas été soumis pour vérification."
 msgstr "Sorry, this email was not submitted for verification yet."
 
-#: inc/functions.php:1033
+#: inc/functions.php:1047
 msgid "Désolé, cet e-mail a déjà été vérifié."
 msgstr "Sorry, this email has already been verified."
 
-#: inc/functions.php:1038
+#: inc/functions.php:1052
 msgid "Désolé, cet e-mail a été maqué comme indésirable."
 msgstr "Sorry, this email has been marked as spam."
 
-#: inc/functions.php:1048
+#: inc/functions.php:1062
 msgid "Désolé, le code fourni n’est pas valide."
 msgstr "Sorry, the provided code is not valid."
 
-#: inc/functions.php:1071
+#: inc/functions.php:1085
 msgid "Désolé, nous ne sommes pas parvenu à valider votre e-mail."
 msgstr "Sorry, we were not able to validate your email."
 

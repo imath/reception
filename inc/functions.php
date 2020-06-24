@@ -32,16 +32,30 @@ add_action( 'plugins_loaded', 'reception_translate', 20 );
  */
 function reception_block_translate_dir( $value = null, $block_editor_script = '' ) {
 	if ( in_array( $block_editor_script, array( 'reception-block-member-bio', 'reception-block-member-contact-form', 'reception-info' ), true ) ) {
-		if ( 'buddypress' === $value ) {
-			$value = 'reception';
-		} elseif ( is_null( $value ) ) {
-			$value = trailingslashit( reception()->dir ) . 'languages';
-		}
+		$value = trailingslashit( reception()->dir ) . 'languages';
 	}
 
 	return $value;
 }
 add_filter( 'bp_block_translation_dir', 'reception_block_translate_dir', 10, 2 );
+
+/**
+ * Sets the reception blocks language domain.
+ *
+ * @since 1.0.0
+ *
+ * @param null|string $value               The BuddyPress domain.
+ * @param string      $block_editor_script The Block's JS script handler.
+ * @return string The language domain.
+ */
+function reception_block_translate_domain( $value = null, $block_editor_script = '' ) {
+	if ( in_array( $block_editor_script, array( 'reception-block-member-bio', 'reception-block-member-contact-form', 'reception-info' ), true ) ) {
+		$value = 'reception';
+	}
+
+	return $value;
+}
+add_filter( 'bp_block_translation_domain', 'reception_block_translate_domain', 10, 2 );
 
 /**
  * Returns the current version of the plugin.

@@ -10,9 +10,9 @@
     "start": "parcel watch src/*/*.js --out-dir js --no-source-maps",
     "dev": "parcel build src/*/*.js --out-dir js --no-source-maps --no-minify",
     "build": "parcel build src/*/*.js --out-dir js",
-		"wpcs": "./vendor/bin/phpcs class-reception.php inc/* --extensions=php --standard=WordPress",
-		"makepot": "wp i18n make-pot . languages/reception.pot --exclude=\".git,.cache,css,images,languages,node_modules,src,vendor\" --headers='{\"Project-Id-Version\": \"Réception\", \"Report-Msgid-Bugs-To\": \"https://github.com/imath/reception/issues\", \"Last-Translator\": \"imath <contact@imathi.eu>\", \"Language-Team\": \"FRENCH <contact@imathi.eu>\"}'",
-		"makejson": "wp i18n make-json languages"
+    "wpcs": "./vendor/bin/phpcs class-reception.php inc/* --extensions=php --standard=WordPress",
+    "makepot": "wp i18n make-pot . languages/reception.pot --exclude=\".git,.cache,css,images,languages,node_modules,src,vendor\" --headers='{\"Project-Id-Version\": \"Réception\", \"Report-Msgid-Bugs-To\": \"https://github.com/imath/reception/issues\", \"Last-Translator\": \"imath <contact@imathi.eu>\", \"Language-Team\": \"FRENCH <contact@imathi.eu>\"}'",
+    "makejson": "wp i18n make-json languages"
   },
   "repository": {
     "type": "git",
