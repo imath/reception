@@ -32,6 +32,20 @@ function reception_template_stack( $template_stack = array() ) {
 add_filter( 'bp_get_template_stack', 'reception_template_stack', 10, 1 );
 
 /**
+ * Use a specific email template for Reception emails.
+ *
+ * @since 1.0.0
+ *
+ * @param array $templates The list of email templates.
+ * @return array The list of email templates.
+ */
+function reception_set_email_template( $templates = array() ) {
+	array_unshift( $templates, 'assets/emails/single-reception-email.php' );
+
+	return $templates;
+}
+
+/**
  * Outputs the Member's front page content.
  *
  * @since 1.0.0

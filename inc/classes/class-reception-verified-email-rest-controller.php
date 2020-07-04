@@ -389,6 +389,8 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 			return $inserted;
 		}
 
+		add_filter( 'bp_email_get_template', 'reception_set_email_template' );
+
 		$notify = bp_send_email(
 			'reception-verify-visitor',
 			$inserted['email'],
@@ -401,6 +403,8 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 				),
 			)
 		);
+
+		remove_filter( 'bp_email_get_template', 'reception_set_email_template' );
 
 		if ( is_wp_error( $notify ) ) {
 			return new WP_Error(
@@ -868,7 +872,11 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 				$request
 			);
 
+			add_filter( 'bp_email_get_template', 'reception_set_email_template' );
+
 			$sent = bp_send_email( $situation, $email, $tokens );
+
+			remove_filter( 'bp_email_get_template', 'reception_set_email_template' );
 
 		} elseif ( $current_user_id && 0 !== $current_user_id && ! $is_self ) {
 			/**
@@ -907,7 +915,11 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 				$request
 			);
 
+			add_filter( 'bp_email_get_template', 'reception_set_email_template' );
+
 			$sent = bp_send_email( $situation, $member, $tokens );
+
+			remove_filter( 'bp_email_get_template', 'reception_set_email_template' );
 
 		} else {
 			$situation = 'reception-contact-member';
@@ -945,7 +957,11 @@ class Reception_Verified_Email_REST_Controller extends WP_REST_Controller {
 				$request
 			);
 
+			add_filter( 'bp_email_get_template', 'reception_set_email_template' );
+
 			$sent = bp_send_email( $situation, $member, $tokens );
+
+			remove_filter( 'bp_email_get_template', 'reception_set_email_template' );
 
 			$update_last_email = true;
 		}
