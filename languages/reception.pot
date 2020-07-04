@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2020-06-24T15:01:57+00:00\n"
+"POT-Creation-Date: 2020-07-04T17:29:50+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.4.0\n"
 "X-Domain: reception\n"
@@ -87,7 +87,7 @@ msgid "l’interface de gestion des e-mails vérifiés"
 msgstr ""
 
 #: inc/classes/class-reception-verified-email-rest-controller.php:64
-#: inc/classes/class-reception-verified-email-rest-controller.php:1193
+#: inc/classes/class-reception-verified-email-rest-controller.php:1209
 msgid "Un identifiant numérique unique pour l’e-mail vérifié."
 msgstr ""
 
@@ -125,108 +125,108 @@ msgid "Désolé, vous n’êtes pas autorisé·e à soumettre votre e-mail pour 
 msgstr ""
 
 #: inc/classes/class-reception-verified-email-rest-controller.php:371
-#: inc/classes/class-reception-verified-email-rest-controller.php:789
+#: inc/classes/class-reception-verified-email-rest-controller.php:793
 msgid "Désolé, la personne que vous souhaitez contacter ne semble pas être un membre du site."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:408
+#: inc/classes/class-reception-verified-email-rest-controller.php:412
 msgid "Désolé, nous ne sommes pas parvenus à vous envoyer le code de confirmation."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:451
+#: inc/classes/class-reception-verified-email-rest-controller.php:455
 msgid "Désolé, vous n’êtes pas autorisé·e à modifier les emails vérfiés."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:501
+#: inc/classes/class-reception-verified-email-rest-controller.php:505
 msgid "Désolé, nous ne sommes pas parvenus à mettre à jour l’email vérifié."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:533
+#: inc/classes/class-reception-verified-email-rest-controller.php:537
 msgid "Désolé, vous n’êtes pas autorisé·e à supprimer cet e-mail des e-mails vérifiés."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:577
+#: inc/classes/class-reception-verified-email-rest-controller.php:581
 msgid "Désolé, l’e-mail n’a pu être supprimé des emails vérifiés."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:616
+#: inc/classes/class-reception-verified-email-rest-controller.php:620
 msgid "Désolé, vous n’êtes pas autorisé·e à vérifier si votre e-mail a été validé."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:683
+#: inc/classes/class-reception-verified-email-rest-controller.php:687
 msgid "Désolé, vous n’êtes pas autorisé·e à valider cet e-mail."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:746
+#: inc/classes/class-reception-verified-email-rest-controller.php:750
 msgid "Désolé, vous n’êtes pas autorisé·e à envoyer un e-mail à ce membre."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:816
+#: inc/classes/class-reception-verified-email-rest-controller.php:820
 msgid "Désolé, vous devez valider votre e-mail avant de pouvoir contacter un membre."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:818
+#: inc/classes/class-reception-verified-email-rest-controller.php:822
 msgid "Désolé, ce visiteur n’a pas validé son e-mail, il n’est pas possible d’utiliser le site pour le contacter."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:956
+#: inc/classes/class-reception-verified-email-rest-controller.php:972
 msgid "Désolé, nous ne sommes pas parvenus à envoyer le message."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1070
+#: inc/classes/class-reception-verified-email-rest-controller.php:1086
 msgid "L’adresse e-mail du visiteur."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1077
+#: inc/classes/class-reception-verified-email-rest-controller.php:1093
 msgid "Le nom du visiteur souhaitant contacter le membre."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1083
+#: inc/classes/class-reception-verified-email-rest-controller.php:1099
 msgid "L’identifiant numérique unique du membre à contacter."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1094
-#: inc/classes/class-reception-verified-email-rest-controller.php:1225
+#: inc/classes/class-reception-verified-email-rest-controller.php:1110
+#: inc/classes/class-reception-verified-email-rest-controller.php:1241
 msgid "Informe si l’e-mail a été marqué comme spam."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1134
+#: inc/classes/class-reception-verified-email-rest-controller.php:1150
 msgid "Ordre de récupération des entrées."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1140
+#: inc/classes/class-reception-verified-email-rest-controller.php:1156
 msgid "Attribut de l’ordre de récupération des entrées : ascendant ou descendant."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1147
+#: inc/classes/class-reception-verified-email-rest-controller.php:1163
 msgid "Attribut de filtrage des résultats selon que l’e-mail a été vérifié ou non."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1154
+#: inc/classes/class-reception-verified-email-rest-controller.php:1170
 msgid "Attribut de filtrage des résultats selon que l’e-mail ait été marqué comme spam ou non."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1161
+#: inc/classes/class-reception-verified-email-rest-controller.php:1177
 msgid "E-mail à rechercher dans le jeu de résultats."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1199
+#: inc/classes/class-reception-verified-email-rest-controller.php:1215
 msgid "La version hachée de l’email vérifié."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1207
+#: inc/classes/class-reception-verified-email-rest-controller.php:1223
 msgid "Le code de validation génére pour la vérification de l’email."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1216
+#: inc/classes/class-reception-verified-email-rest-controller.php:1232
 msgid "Informe si l’e-mail a été vérifié."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1233
+#: inc/classes/class-reception-verified-email-rest-controller.php:1249
 msgid "Date à laquelle l’e-mail a été vérifié."
 msgstr ""
 
-#: inc/classes/class-reception-verified-email-rest-controller.php:1240
+#: inc/classes/class-reception-verified-email-rest-controller.php:1256
 msgid "Date à laquelle l’e-mail a été utilisé pour la dernière fois."
 msgstr ""
 
@@ -566,16 +566,16 @@ msgstr ""
 msgid "Désolé, nous ne sommes pas parvenu à valider votre e-mail."
 msgstr ""
 
-#: inc/templates.php:42
+#: inc/templates.php:56
 msgid "Le gabarit pour la page d’accueil personnalisée du membre est introuvable."
 msgstr ""
 
 #. translators: %s is the link to edit the Reception Blocks template
-#: inc/templates.php:110
+#: inc/templates.php:124
 msgid "Le gabarit ne contient aucun élément à afficher. %s."
 msgstr ""
 
-#: inc/templates.php:114
+#: inc/templates.php:128
 msgid "Merci de le mettre à jour"
 msgstr ""
 
