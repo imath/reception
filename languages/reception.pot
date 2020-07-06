@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2020-07-04T17:29:50+00:00\n"
+"POT-Creation-Date: 2020-07-06T08:00:50+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.4.0\n"
 "X-Domain: reception\n"
@@ -566,16 +566,16 @@ msgstr ""
 msgid "Désolé, nous ne sommes pas parvenu à valider votre e-mail."
 msgstr ""
 
-#: inc/templates.php:56
+#: inc/templates.php:58
 msgid "Le gabarit pour la page d’accueil personnalisée du membre est introuvable."
 msgstr ""
 
 #. translators: %s is the link to edit the Reception Blocks template
-#: inc/templates.php:124
+#: inc/templates.php:126
 msgid "Le gabarit ne contient aucun élément à afficher. %s."
 msgstr ""
 
-#: inc/templates.php:128
+#: inc/templates.php:130
 msgid "Merci de le mettre à jour"
 msgstr ""
 
