@@ -2,6 +2,11 @@
 
 _BuddyPress plugin to customize members front page using WordPress Blocks._
 
+## Requirements
+
+- WordPress 5.4.2
+- BuddyPress 6.1.0
+
 ## Customizing the user front page
 
 Once you activated the plugin, head over to BuddyPress settings and activate the Options tab, here's what you should see:
