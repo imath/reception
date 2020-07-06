@@ -1,13 +1,28 @@
 # Réception
 
-Page d'accueil des membres BuddyPress personnalisable à l'aide de blocs WordPress.
+_BuddyPress plugin to customize members front page using WordPress Blocks._
 
-## Liste des tâches
-- [x] Un bloc pour permettre aux administrateurs de la communautés d'ajouter des consignes pour leurs membres.
-- [x] Un bloc de contact via email du membre par un visiteur.
-- [x] Rendre possible l'utilisation du bloc ci-dessus pour 2 membres du site.
-- [x] Ajouter des filtres pour permettre de gérer la notification de présence pour le télésoin via ce bloc de contact.
-- [x] Un lien pour pouvoir modifier le gabarit de la page d'accueil directement sur la page d'accueil des membres.
-- [x] Un nouveau WP Admin Menu pour accéder à sa page d'accueil.
-- [x] Un nouveau élément de wp nav menu pour accéder à sa page d'accueil.
-- [x] Une interface d'administration des e-mails vérifiés pour éventuellement les marquer en spams.
+## Customizing the user front page
+
+Once you activated the plugin, head over to BuddyPress settings and activate the Options tab, here's what you should see:
+
+![Réception Option](https://i.imgur.com/tnruYA9.png)
+
+As the arrow shows, click on the **edit** link to open the Members block based template for their front page.
+
+![Réception ABout Block](https://i.imgur.com/wRuAboB.png)
+
+The Réception plugin comes with two interactive blocks, you'll both find into the Widgets category:
+
+- The **Member's presentation** allows your members to customize their biological information.
+- The **Member's contact form** allows your members to send each others emails and allows visitors to contact members by email once they accomplished some email verification steps.
+
+## What are the email verification steps?
+
+Visitors wishing to contact a site member will first need to request a verification code they will receive on their email address. Once they have successfully verified their email address, they will be able to contact site members from their front page's contact form.
+
+## Verified emails moderation.
+
+![Réception ABout Block](https://i.imgur.com/KQ7gWRw.png)
+
+If you need to moderate some visitors, search for their email address into the verified emails. Once found, if you hover their confirmation code, you will be able to mark them as spam: they won't be able to contact your members anymore. You will also be able to delete them from the verified emails.
