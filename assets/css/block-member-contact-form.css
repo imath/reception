@@ -30,7 +30,13 @@
 }
 
 .reception-contact-form-modal {
-	width: 600px;
+    width: 100%;
+}
+
+@media (min-width: 1000px) {
+	.reception-contact-form-modal {   
+		width: 600px;
+	}
 }
 
 .reception-contact-form-modal .block-editor-rich-text__editable [data-rich-text-placeholder] {
