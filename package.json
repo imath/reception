@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "BuddyPress plugin to customize user front using WordPress Blocks.",
   "engines": {
-    "node": "10.18.1",
-    "npm": "6.14.4"
+    "node": ">=14.15.0",
+    "npm": ">=6.14.8"
   },
   "scripts": {
     "start": "parcel watch src/*/*.js --out-dir js --no-source-maps",
