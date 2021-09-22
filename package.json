@@ -30,8 +30,8 @@
   },
   "homepage": "https://github.com/imath/reception#readme",
   "devDependencies": {
-    "@babel/core": "^7.9.6",
-    "@wordpress/babel-preset-default": "^4.12.1",
-    "parcel-bundler": "^1.12.4"
+    "@babel/core": "~7.15.5",
+    "@wordpress/babel-preset-default": "^6.3.2",
+    "parcel-bundler": "^1.12.5"
   }
 }
